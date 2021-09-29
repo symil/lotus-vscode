@@ -203,12 +203,15 @@
 				{
 					"comment": "functions",
 					"name": "meta.function.call.lotus",
-					"begin": "((?:r#(?![Tt]his))?[A-Za-z0-9_]+)(\\()",
+					"begin": "((?:r#(?![Tt]his))?[A-Za-z0-9_]+)(<([a-zA-Z0-9_:+, ]*)>)?(\\()",
 					"beginCaptures": {
 						"1": {
 							"name": "entity.name.function.lotus"
 						},
-						"2": {
+						"3": {
+							"name": "entity.name.type.lotus"
+						},
+						"4": {
 							"name": "punctuation.brackets.round.lotus"
 						}
 					},
