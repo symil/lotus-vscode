@@ -1,0 +1,25 @@
+{
+    "name": "vscode-lotus",
+    "displayName": "vscode-lotus",
+    "description": "",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.60.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [{
+            "id": "lotus",
+            "aliases": ["Lotus", "lotus"],
+            "extensions": [".lt"],
+            "configuration": "./language-configuration.json"
+        }],
+        "grammars": [{
+            "language": "lotus",
+            "scopeName": "source.lotus",
+            "path": "./syntaxes/lotus.tmLanguage.json"
+        }]
+    }
+}

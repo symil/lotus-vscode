@@ -1,0 +1,299 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "Lotus",
+	"patterns": [
+		{
+			"include": "#comments"
+		},
+		{
+			"include": "#keywords"
+		},
+		{
+			"include": "#wasm"
+		},
+		{
+			"include": "#lvariables"
+		},
+		{
+			"include": "#constants"
+		},
+		{
+			"include": "#functions"
+		},
+		{
+			"include": "#types"
+		},
+		{
+			"include": "#punctuation"
+		},
+		{
+			"include": "#strings"
+		},
+		{
+			"include": "#variables"
+		}
+	],
+	"repository": {
+		"comments": {
+			"patterns": [
+				{
+					"comment": "line comments",
+					"name": "comment.line.double-slash.lotus",
+					"match": "\\s*//.*"
+				}
+			]
+		},
+		"keywords": {
+			"patterns": [
+				{
+					"comment": "control keywords",
+					"name": "keyword.control.lotus",
+					"match": "\\b(if|else|while|for|return|break|continue)\\b"
+				},
+				{
+					"comment": "other keywords",
+					"name": "keyword.other.lotus storage.type.lotus",
+					"match": "\\b(let|const|static|fn|type|class|enum|export|pub|sys|as)\\b"
+				}
+			]
+		},
+		"constants": {
+			"patterns": [
+				{
+					"comment": "constants",
+					"name": "variable.other.lotus",
+					"match": "\\b[A-Z]{2}[A-Z0-9_]*\\b"
+				},
+				{
+					"comment": "booleans",
+					"name": "constant.language.bool.lotus",
+					"match": "\\b(true|false)\\b"
+				},
+				{
+					"comment": "decimal integers and floats",
+					"name": "constant.numeric.decimal.lotus",
+					"match": "((-|\\+)?\\d+(\\.\\d*)?f?)"
+				}
+			]
+		},
+		"strings": {
+			"name": "string.quoted.double.lotus",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": [
+				{
+					"name": "constant.character.escape.lotus",
+					"match": "\\\\."
+				},
+				{
+					"include": "#escapes"
+				}
+			]
+		},
+		"escapes": {
+			"comment": "escapes: ASCII, byte, Unicode, quote, regex",
+			"name": "constant.character.escape.lotus",
+			"match": "(\\\\)(?:(?:(x[0-7][0-7a-fA-F])|(u(\\{)[\\da-fA-F]{4,6}(\\}))|.))",
+			"captures": {
+				"1": {
+					"name": "constant.character.escape.backslash.lotus"
+				},
+				"2": {
+					"name": "constant.character.escape.bit.lotus"
+				},
+				"3": {
+					"name": "constant.character.escape.unicode.lotus"
+				},
+				"4": {
+					"name": "constant.character.escape.unicode.punctuation.lotus"
+				},
+				"5": {
+					"name": "constant.character.escape.unicode.punctuation.lotus"
+				}
+			}
+		},
+		"types": {
+			"patterns": [
+				{
+					"comment": "builtin types",
+					"match": "\\b(bool|int|float|string|ptr)\\b",
+					"captures": {
+						"1": {
+							"name": "entity.name.type.lotus"
+						}
+					}
+				},
+				{
+					"comment": "wasm types",
+					"match": "\\b(i32|f32|void)\\b",
+					"captures": {
+						"1": {
+							"name": "entity.name.type.wasm.lotus"
+						}
+					}
+				},
+				{
+					"comment": "parameterized types",
+					"begin": "\\b([A-Z][A-Za-z0-9]*)(<)",
+					"beginCaptures": {
+						"1": {
+							"name": "entity.name.type.lotus"
+						},
+						"2": {
+							"name": "punctuation.brackets.angle.lotus"
+						}
+					},
+					"end": ">",
+					"endCaptures": {
+						"0": {
+							"name": "punctuation.brackets.angle.lotus"
+						}
+					},
+					"patterns": [
+						{
+							"include": "#comments"
+						},
+						{
+							"include": "#types"
+						}
+					]
+				},
+				{
+					"comment": "type declarations",
+					"match": "\\b(type|enum|class)(\\s*\\((void|i32|f32)\\))?\\s+([A-Z][A-Za-z0-9]*)\\b",
+					"captures": {
+						"1": {
+							"name": "keyword.declaration.type.lotus storage.type.lotus"
+						},
+						"3": {
+							"name": "entity.name.type.type.lotus"
+						},
+						"4": {
+							"name": "entity.name.type.type.lotus"
+						}
+					}
+				},
+				{
+					"comment": "types",
+					"name": "entity.name.type.lotus",
+					"match": "\\b[A-Z][A-Za-z0-9]*\\b(?!!)"
+				}
+			]
+		},
+		"lvariables": {
+			"patterns": [
+				{
+					"comment": "this",
+					"name": "variable.language.this.lotus",
+					"match": "\\b[Tt]his\\b"
+				}
+			]
+		},
+		"variables": {
+			"patterns": [
+				{
+					"comment": "variables",
+					"name": "variable.other.lotus",
+					"match": "\\b(?<!(?<!\\.)\\.)(?:r#(?!([Tt]his)))?[a-z0-9_]+\\b"
+				}
+			]
+		},
+		"functions": {
+			"patterns": [
+				{
+					"comment": "functions",
+					"name": "meta.function.call.lotus",
+					"begin": "((?:r#(?![Tt]his))?[A-Za-z0-9_]+)(\\()",
+					"beginCaptures": {
+						"1": {
+							"name": "entity.name.function.lotus"
+						},
+						"2": {
+							"name": "punctuation.brackets.round.lotus"
+						}
+					},
+					"end": "\\)",
+					"endCaptures": {
+						"0": {
+							"name": "punctuation.brackets.round.lotus"
+						}
+					},
+					"patterns": [
+						{
+							"include": "#comments"
+						},
+						{
+							"include": "#keywords"
+						},
+						{
+							"include": "#lvariables"
+						},
+						{
+							"include": "#constants"
+						},
+						{
+							"include": "#functions"
+						},
+						{
+							"include": "#punctuation"
+						},
+						{
+							"include": "#strings"
+						},
+						{
+							"include": "#types"
+						},
+						{
+							"include": "#variables"
+						}
+					]
+				}
+			]
+		},
+		"punctuation": {
+			"patterns": [
+				{
+					"comment": "comma",
+					"name": "punctuation.comma.lotus",
+					"match": ","
+				},
+				{
+					"comment": "curly braces",
+					"name": "punctuation.brackets.curly.lotus",
+					"match": "[{}]"
+				},
+				{
+					"comment": "parentheses, round brackets",
+					"name": "punctuation.brackets.round.lotus",
+					"match": "[()]"
+				},
+				{
+					"comment": "semicolon",
+					"name": "punctuation.semi.lotus",
+					"match": ";"
+				},
+				{
+					"comment": "square brackets",
+					"name": "punctuation.brackets.square.lotus",
+					"match": "[\\[\\]]"
+				},
+				{
+					"comment": "angle brackets",
+					"name": "punctuation.brackets.angle.lotus",
+					"match": "(?<!=)[<>]"
+				}
+			]
+		},
+		"wasm": {
+			"patterns": [
+				{
+					"comment": "wasm block",
+					"begin": "{{",
+					"end": "}}",
+					"contentName": "markup.bold.wasm.lotus"
+				}
+			]
+		}
+	},
+	"scopeName": "source.lotus"
+}
