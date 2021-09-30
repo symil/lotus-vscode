@@ -53,7 +53,7 @@
 				{
 					"comment": "other keywords",
 					"name": "keyword.other.lotus storage.type.lotus",
-					"match": "\\b(let|const|static|fn|type|class|enum|export|pub|sys|as)\\b"
+					"match": "\\b(let|const|static|fn|type|class|enum|export|pub|sys|as|in)\\b"
 				}
 			]
 		},
@@ -160,7 +160,7 @@
 				},
 				{
 					"comment": "type declarations",
-					"match": "\\b(type|enum|class)(\\s*\\((void|i32|f32)\\))?\\s+([A-Z][A-Za-z0-9]*)\\b",
+					"match": "\\b(type|enum|class|interface)(\\s*\\((void|i32|f32)\\))?\\s+([A-Z][A-Za-z0-9]*)\\b",
 					"captures": {
 						"1": {
 							"name": "keyword.declaration.type.lotus storage.type.lotus"
@@ -203,7 +203,7 @@
 				{
 					"comment": "functions",
 					"name": "meta.function.call.lotus",
-					"begin": "((?:r#(?![Tt]his))?[A-Za-z0-9_]+)(<([a-zA-Z0-9_:+, ]*)>)?(\\()",
+					"begin": "((?:r#(?![Tt]his))?@?[A-Za-z0-9_]+)(<([a-zA-Z0-9_:+, ]*)>)?(\\()",
 					"beginCaptures": {
 						"1": {
 							"name": "entity.name.function.lotus"
