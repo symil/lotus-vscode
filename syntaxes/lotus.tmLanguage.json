@@ -48,17 +48,22 @@
 				{
 					"comment": "control keywords",
 					"name": "keyword.control.lotus",
-					"match": "\\b(if|else|while|for|return|break|continue)\\b"
+					"match": "\\b(if|else|while|for|return|break|continue|iter_fields)\\b"
 				},
 				{
 					"comment": "other keywords",
 					"name": "keyword.other.lotus storage.type.lotus",
-					"match": "\\b(let|const|static|fn|type|class|enum|export|pub|sys|as|in)\\b"
+					"match": "\\b(let|const|static|fn|type|class|enum|export|pub|sys|as|in|autogen|extends)\\b"
 				}
 			]
 		},
 		"constants": {
 			"patterns": [
+				{
+					"comment": "compiler constants",
+					"name": "constant.character.set.regexp",
+					"match": "#[A-Z][A-Z0-9_]*\\b"
+				},
 				{
 					"comment": "constants",
 					"name": "variable.other.lotus",
