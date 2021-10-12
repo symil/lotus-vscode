@@ -62,7 +62,7 @@
 				{
 					"comment": "compiler constants",
 					"name": "constant.character.set.regexp",
-					"match": "#[A-Z][A-Z0-9_]*\\b"
+					"match": "#(CLASS_ID|FIELD_COUNT|FIELD_NAME|FIELD_TYPE)\\b"
 				},
 				{
 					"comment": "constants",
