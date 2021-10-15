@@ -82,16 +82,36 @@
 			]
 		},
 		"strings": {
-			"name": "string.quoted.double.lotus",
-			"begin": "\"",
-			"end": "\"",
 			"patterns": [
 				{
-					"name": "constant.character.escape.lotus",
-					"match": "\\\\."
+					"comment": "double quotes strings",
+					"name": "string.quoted.double.lotus",
+					"begin": "\"",
+					"end": "\"",
+					"patterns": [
+						{
+							"name": "constant.character.escape.lotus",
+							"match": "\\\\."
+						},
+						{
+							"include": "#escapes"
+						}
+					]
 				},
 				{
-					"include": "#escapes"
+					"comment": "single quotes chars",
+					"name": "string.quoted.single.lotus",
+					"begin": "'",
+					"end": "'",
+					"patterns": [
+						{
+							"name": "constant.character.escape.lotus",
+							"match": "\\\\."
+						},
+						{
+							"include": "#escapes"
+						}
+					]
 				}
 			]
 		},
@@ -121,7 +141,7 @@
 			"patterns": [
 				{
 					"comment": "builtin types",
-					"match": "\\b(bool|int|float|string|ptr)\\b",
+					"match": "\\b(bool|int|float|char|string|ptr)\\b",
 					"captures": {
 						"1": {
 							"name": "entity.name.type.lotus"
