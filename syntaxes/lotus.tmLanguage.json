@@ -53,7 +53,7 @@
 				{
 					"comment": "other keywords",
 					"name": "keyword.other.lotus storage.type.lotus",
-					"match": "\\b(let|const|static|fn|type|class|enum|export|pub|sys|as|in|autogen|extends)\\b"
+					"match": "\\b(let|const|static|dyn|fn|type|class|enum|export|pub|sys|as|in|autogen|extends)\\b"
 				}
 			]
 		},
@@ -62,7 +62,7 @@
 				{
 					"comment": "compiler constants",
 					"name": "constant.character.set.regexp",
-					"match": "#(CLASS_ID|FIELD_COUNT|FIELD_NAME|FIELD_TYPE)\\b"
+					"match": "#(TYPE_ID|FIELD_COUNT|FIELD_NAME|FIELD_TYPE)\\b"
 				},
 				{
 					"comment": "constants",
@@ -73,6 +73,11 @@
 					"comment": "booleans",
 					"name": "constant.language.bool.lotus",
 					"match": "\\b(true|false)\\b"
+				},
+				{
+					"comment": "none",
+					"name": "constant.language.none.lotus",
+					"match": "\\b(none(?!\\())\\b"
 				},
 				{
 					"comment": "decimal integers and floats",
@@ -210,7 +215,7 @@
 				{
 					"comment": "this",
 					"name": "variable.language.this.lotus",
-					"match": "\\b[Tt]his\\b"
+					"match": "\\bthis\\b"
 				}
 			]
 		},
