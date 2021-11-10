@@ -48,12 +48,12 @@
 				{
 					"comment": "control keywords",
 					"name": "keyword.control.lotus",
-					"match": "\\b(if|else|while|for|return|break|continue|iter_fields)\\b"
+					"match": "\\b(if|else|while|for|match|return|break|continue|iter_fields|iter_variants|iter_ancestors)\\b"
 				},
 				{
 					"comment": "other keywords",
 					"name": "keyword.other.lotus storage.type.lotus",
-					"match": "\\b(let|const|static|dyn|fn|type|class|enum|export|pub|sys|as|in|autogen|extends)\\b"
+					"match": "\\b(?<!\\.)(let|const|static|dyn|fn|type|class|enum|export|pub|sys|as|is|in|autogen|extends)(?!:)\\b"
 				}
 			]
 		},
@@ -62,7 +62,7 @@
 				{
 					"comment": "compiler constants",
 					"name": "constant.character.set.regexp",
-					"match": "#(TYPE_ID|FIELD_COUNT|FIELD_NAME|FIELD_TYPE)\\b"
+					"match": "#(TYPE_ID|TYPE_NAME|TYPE_SHORT_NAME|FIELD_COUNT|FIELD_NAME|FIELD_TYPE|FIELD_DEFAULT_EXPRESSION|ANCESTOR_ID|ANCESTOR_NAME|VARIANT_NAME|VARIANT_VALUE|VARIANT_COUNT)\\b"
 				},
 				{
 					"comment": "constants",
@@ -70,9 +70,9 @@
 					"match": "\\b[A-Z]{2}[A-Z0-9_]*\\b"
 				},
 				{
-					"comment": "booleans",
+					"comment": "booleans & nan",
 					"name": "constant.language.bool.lotus",
-					"match": "\\b(true|false)\\b"
+					"match": "\\b(true|false|nan)\\b"
 				},
 				{
 					"comment": "none",
@@ -82,7 +82,7 @@
 				{
 					"comment": "decimal integers and floats",
 					"name": "constant.numeric.decimal.lotus",
-					"match": "((-|\\+)?\\d+(\\.\\d*)?f?)"
+					"match": "((-|\\+)?((0x[0-9abcdefABCDEF]{1,8})|(\\d+(\\.\\d*)?f?)))"
 				}
 			]
 		},
