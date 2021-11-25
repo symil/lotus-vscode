@@ -53,7 +53,7 @@
 				{
 					"comment": "other keywords",
 					"name": "keyword.other.lotus storage.type.lotus",
-					"match": "\\b(?<!\\.)(let|const|static|dyn|fn|type|class|enum|export|pub|sys|as|is|in|autogen|extends)(?!:)\\b"
+					"match": "\\b(?<![.@])(let|const|static|dyn|fn|type|class|enum|view|export|pub|sys|as|is|in|autogen|extends)(?!:)\\b"
 				}
 			]
 		},
@@ -62,7 +62,7 @@
 				{
 					"comment": "compiler constants",
 					"name": "constant.character.set.regexp",
-					"match": "#(TYPE_ID|TYPE_NAME|TYPE_SHORT_NAME|FIELD_COUNT|FIELD_NAME|FIELD_TYPE|FIELD_DEFAULT_EXPRESSION|ANCESTOR_ID|ANCESTOR_NAME|VARIANT_NAME|VARIANT_VALUE|VARIANT_COUNT)\\b"
+					"match": "#(LINE|TYPE_ID|TYPE_NAME|TYPE_SHORT_NAME|FIELD_COUNT|FIELD_NAME|FIELD_TYPE|FIELD_DEFAULT_EXPRESSION|ANCESTOR_ID|ANCESTOR_NAME|VARIANT_NAME|VARIANT_VALUE|VARIANT_COUNT|USER_TYPE|WORLD_TYPE|WINDOW_TYPE|LOCAL_DATA_TYPE)\\b"
 				},
 				{
 					"comment": "constants",
@@ -145,6 +145,21 @@
 		"types": {
 			"patterns": [
 				{
+					"comment": "enum variant",
+					"match": "(?<=::)(\\w+)(?!\\()",
+					"name": "variable.other.lotus"
+				},
+				{
+					"comment": "enum declaration",
+					"begin": "(?<=enum\\s+\\w+\\s*){",
+					"end": "}",
+					"patterns": [{
+						"comment": "enum variant",
+						"match": "\\w+",
+						"name": "variable.other.lotus"
+					}]
+				},
+				{
 					"comment": "builtin types",
 					"match": "\\b(bool|int|float|char|string|ptr)\\b",
 					"captures": {
@@ -182,6 +197,9 @@
 					"patterns": [
 						{
 							"include": "#comments"
+						},
+						{
+							"include": "#keywords"
 						},
 						{
 							"include": "#types"
@@ -224,16 +242,25 @@
 				{
 					"comment": "variables",
 					"name": "variable.other.lotus",
-					"match": "\\b(?<!(?<!\\.)\\.)(?:r#(?!([Tt]his)))?[a-z0-9_]+\\b"
+					"match": "\\b(?:r#(?!([Tt]his)))?[a-z0-9_]+\\b"
 				}
 			]
 		},
 		"functions": {
 			"patterns": [
 				{
+					"comment": "functions with no signature",
+					"match": "(?<=dyn)\\s+(\\w+)\\s*{",
+					"captures": {
+						"1": {
+							"name": "entity.name.function.lotus"
+						}
+					}
+				},
+				{
 					"comment": "functions",
 					"name": "meta.function.call.lotus",
-					"begin": "((?:r#(?![Tt]his))?@?[A-Za-z0-9_]+)(<([a-zA-Z0-9_:+, ]*)>)?(\\()",
+					"begin": "((?:r#(?![Tt]his))?@?[a-z0-9_][A-Za-z0-9_]*)(<([a-zA-Z0-9_:+, ]*)>)?(\\()",
 					"beginCaptures": {
 						"1": {
 							"name": "entity.name.function.lotus"
