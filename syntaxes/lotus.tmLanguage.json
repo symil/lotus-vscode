@@ -48,19 +48,29 @@
 				{
 					"comment": "control keywords",
 					"name": "keyword.control.lotus",
-					"match": "\\b(if|else|while|for|match|return|break|continue|iter_fields|iter_variants|iter_ancestors)\\b"
+					"match": "\\b(if|else|while|for|in|match|return|check|break|continue|iter_fields|iter_variants|iter_ancestors)\\b"
+				},
+				{
+					"comment": "fn keyword",
+					"name": "keyword.other.lotus",
+					"match": "\\b(fn)\\b"
 				},
 				{
 					"comment": "other keywords",
 					"name": "keyword.other.lotus storage.type.lotus",
-					"match": "\\b(?<![.@])(let|const|static|dyn|fn|type|class|enum|view|export|pub|sys|as|is|in|autogen|extends)(?!:)\\b"
+					"match": "\\b(?<![.@(])(let|const|static|dyn|type|class|enum|view|event|export|pub|sys|as|is|autogen|extends)(?=\\s)"
+				},
+				{
+					"comment": "operators",
+					"name": "keyword.operator.lotus",
+					"match": "(\\+=|-=|\\*=|/=|%=|\\^=|&=|\\|=|<<=|>>=|\\+|-|\\*|/|%|<<|>>|&&|\\|\\||&|\\||==|!=|>=|>|<=|<|=|!|\\^|~)"
 				}
 			]
 		},
 		"constants": {
 			"patterns": [
 				{
-					"comment": "compiler constants",
+					"comment": "macros",
 					"name": "constant.character.set.regexp",
 					"match": "#(LINE|TYPE_ID|TYPE_NAME|TYPE_SHORT_NAME|FIELD_COUNT|FIELD_NAME|FIELD_TYPE|FIELD_DEFAULT_EXPRESSION|ANCESTOR_ID|ANCESTOR_NAME|VARIANT_NAME|VARIANT_VALUE|VARIANT_COUNT|USER_TYPE|WORLD_TYPE|WINDOW_TYPE|LOCAL_DATA_TYPE)\\b"
 				},
@@ -117,6 +127,62 @@
 							"include": "#escapes"
 						}
 					]
+				},
+				{
+					"comment": "template strings",
+					"name": "string.quoted.template.lotus",
+					"begin": "`",
+					"end": "`",
+					"patterns": [
+						{
+							"name": "constant.character.escape.lotus",
+							"match": "\\\\."
+						},
+						{
+							"include": "#escapes"
+						},
+						{
+							"include": "#template"
+						}
+					]
+				}
+			]
+		},
+		"template": {
+			"comment": "template string expression fragment",
+			"name": "variable.language",
+			"begin": "(\\${)",
+			"end": "}",
+			"patterns": [
+				{
+					"include": "#comments"
+				},
+				{
+					"include": "#keywords"
+				},
+				{
+					"include": "#wasm"
+				},
+				{
+					"include": "#lvariables"
+				},
+				{
+					"include": "#constants"
+				},
+				{
+					"include": "#functions"
+				},
+				{
+					"include": "#types"
+				},
+				{
+					"include": "#punctuation"
+				},
+				{
+					"include": "#strings"
+				},
+				{
+					"include": "#variables"
 				}
 			]
 		},
@@ -231,9 +297,9 @@
 		"lvariables": {
 			"patterns": [
 				{
-					"comment": "this",
-					"name": "variable.language.this.lotus",
-					"match": "\\bthis\\b"
+					"comment": "special variables",
+					"name": "variable.language.lotus",
+					"match": "\\b(this|evt)\\b"
 				}
 			]
 		},
@@ -250,9 +316,12 @@
 			"patterns": [
 				{
 					"comment": "functions with no signature",
-					"match": "(?<=dyn)\\s+(\\w+)\\s*{",
+					"match": "([@&^])\\s*(\\w+)\\s*{",
 					"captures": {
 						"1": {
+							"name": "keyword.other.lotus"
+						},
+						"2": {
 							"name": "entity.name.function.lotus"
 						}
 					}
