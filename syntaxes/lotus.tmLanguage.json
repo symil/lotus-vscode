@@ -48,7 +48,7 @@
 				{
 					"comment": "control keywords",
 					"name": "keyword.control.lotus",
-					"match": "\\b(if|else|while|for|in|match|return|check|break|continue|iter_fields|iter_variants|iter_ancestors)\\b"
+					"match": "\\b(if|else|while|for|in|match|return|check|break|continue|intercept|yield|iter_fields|iter_variants|iter_ancestors)\\b"
 				},
 				{
 					"comment": "fn keyword",
@@ -63,7 +63,7 @@
 				{
 					"comment": "operators",
 					"name": "keyword.operator.lotus",
-					"match": "(\\+=|-=|\\*=|/=|%=|\\^=|&=|\\|=|<<=|>>=|\\+|-|\\*|/|%|<<|>>|&&|\\|\\||&|\\||==|!=|>=|>|<=|<|=|!|\\^|~)"
+					"match": "(=>|\\+=|-=|\\*=|/=|%=|\\^=|&=|\\|=|<<=|>>=|\\+|-|\\*|/|%|<<|>>|&&|\\|\\||&|\\||==|!=|>=|>|<=|<|=|!|\\^|~)"
 				}
 			]
 		},
@@ -299,7 +299,7 @@
 				{
 					"comment": "special variables",
 					"name": "variable.language.lotus",
-					"match": "\\b(this|evt)\\b"
+					"match": "\\b(self|evt)\\b"
 				}
 			]
 		},
@@ -308,7 +308,7 @@
 				{
 					"comment": "variables",
 					"name": "variable.other.lotus",
-					"match": "\\b(?:r#(?!([Tt]his)))?[a-z0-9_]+\\b"
+					"match": "\\b(?:r#(?!([Ss]elf)))?[a-z0-9_]+\\b"
 				}
 			]
 		},
@@ -329,7 +329,7 @@
 				{
 					"comment": "functions",
 					"name": "meta.function.call.lotus",
-					"begin": "((?:r#(?![Tt]his))?@?[a-z0-9_][A-Za-z0-9_]*)(<([a-zA-Z0-9_:+, ]*)>)?(\\()",
+					"begin": "((?:r#(?![Ss]elf))?@?[a-z0-9_][A-Za-z0-9_]*)(<([a-zA-Z0-9_:+, ]*)>)?(\\()",
 					"beginCaptures": {
 						"1": {
 							"name": "entity.name.function.lotus"
