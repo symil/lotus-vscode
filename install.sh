@@ -5,4 +5,7 @@ SOURCE_DIR_NAME=$(basename $SOURCE_DIR)
 TARGET_DIR="$HOME/.vscode/extensions"
 
 rm -rf "$TARGET_DIR/$SOURCE_DIR_NAME"
-rsync -a --exclude=".git*" $SOURCE_DIR $TARGET_DIR
+
+if [ "$1" != "-d" ]; then
+    rsync -a --exclude=".git*" $SOURCE_DIR $TARGET_DIR
+fi

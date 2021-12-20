@@ -48,17 +48,17 @@
 				{
 					"comment": "control keywords",
 					"name": "keyword.control.lotus",
-					"match": "\\b(if|else|while|for|in|match|return|check|break|continue|intercept|yield|iter_fields|iter_variants|iter_ancestors)\\b"
+					"match": "\\b(if|else|while|for|in|match|return|check|break|continue|intercept|yield|iter_fields|iter_variants|iter_ancestors)(?!\\()\\b"
 				},
 				{
 					"comment": "fn keyword",
 					"name": "keyword.other.lotus",
-					"match": "\\b(fn)\\b"
+					"match": "\\b(fn|type)\\b"
 				},
 				{
 					"comment": "other keywords",
 					"name": "keyword.other.lotus storage.type.lotus",
-					"match": "\\b(?<![.@(])(let|const|static|dyn|type|class|enum|view|event|export|pub|sys|as|is|autogen|extends)(?=\\s)"
+					"match": "\\b(?<![.@(])(let|const|static|dyn|export|pub|sys|as|is|autogen|extends)(?=\\s)"
 				},
 				{
 					"comment": "operators",
@@ -222,7 +222,7 @@
 					"patterns": [{
 						"comment": "enum variant",
 						"match": "\\w+",
-						"name": "variable.other.lotus"
+						"name": "variable.other.constant"
 					}]
 				},
 				{
@@ -269,12 +269,15 @@
 						},
 						{
 							"include": "#types"
+						},
+						{
+							"include": "#constants"
 						}
 					]
 				},
 				{
 					"comment": "type declarations",
-					"match": "\\b(type|enum|class|interface)(\\s*\\((void|i32|f32)\\))?\\s+([A-Z][A-Za-z0-9]*)\\b",
+					"match": "\\b(type|enum|class|view|interface)(\\s*\\((void|i32|f32)\\))?\\s+([A-Z][A-Za-z0-9]*)\\b",
 					"captures": {
 						"1": {
 							"name": "keyword.declaration.type.lotus storage.type.lotus"
@@ -315,11 +318,11 @@
 		"functions": {
 			"patterns": [
 				{
-					"comment": "functions with no signature",
-					"match": "([@&^])\\s*(\\w+)\\s*{",
+					"comment": "event callbacks",
+					"match": "([@$]+)\\s*([a-zA-Z0-9_]+)",
 					"captures": {
 						"1": {
-							"name": "keyword.other.lotus"
+							"name": "entity.name.function.lotus"
 						},
 						"2": {
 							"name": "entity.name.function.lotus"
