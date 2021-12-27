@@ -1,5 +1,5 @@
 import * as path from 'path';
-import { workspace, ExtensionContext } from 'vscode';
+import { workspace, languages, ExtensionContext, TextDocument, Position, Range, CancellationToken, ProviderResult, WorkspaceEdit } from 'vscode';
 
 import {
 	LanguageClient,
@@ -7,6 +7,8 @@ import {
 	ServerOptions,
 	TransportKind
 } from 'vscode-languageclient/node';
+
+const COMPILER_PATH = path.join(process.env.HOME || '', 'prog', 'lotus', 'lotus-compiler', 'target', 'debug', 'lotus-compiler');
 
 let client: LanguageClient;
 
@@ -53,6 +55,15 @@ export function activate(context: ExtensionContext) {
 
 	// Start the client. This will also launch the server
 	client.start();
+
+	languages.registerRenameProvider({ scheme: 'file', language: 'lotus' }, {
+		prepareRename(textDocument: TextDocument, position: Position, token: CancellationToken) : Range {
+			return new Range(new Position(position.line, position.character - 1), new Position(position.line, position.character + 1));
+		},
+		provideRenameEdits(document: TextDocument, position: Position, newName: string, token: CancellationToken) : ProviderResult<WorkspaceEdit> {
+			return null;
+		}
+	});
 }
 
 export function deactivate(): Thenable<void> | undefined {
