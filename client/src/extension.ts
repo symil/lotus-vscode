@@ -1,8 +1,9 @@
 import * as path from 'path';
-import { execSync } from 'child_process';
+import { execSync, spawn } from 'child_process';
 import { workspace, languages, ExtensionContext, TextDocument, Position, Range, CancellationToken, ProviderResult, WorkspaceEdit, Diagnostic, DiagnosticSeverity, Uri, window } from 'vscode';
+import { LanguageServer } from './language-server';
 
-const DEBUG = false;
+const DEBUG = true;
 const MODE = DEBUG ? 'debug' : 'release';
 const COMPILER_ROOT_PATH = path.join(process.env.HOME || '', 'prog', 'lotus', 'lotus-compiler');
 const COMPILER_BINARY_PATH = path.join(COMPILER_ROOT_PATH, 'target', MODE, 'lotus-compiler');
@@ -11,6 +12,7 @@ compileCompiler();
 
 let diagnosticCollection = languages.createDiagnosticCollection('lotus');
 let outputChannel = window.createOutputChannel('Lotus');
+let languageServer = new LanguageServer(COMPILER_BINARY_PATH);
 
 // outputChannel.show();
 
@@ -27,8 +29,8 @@ function makeRange(document: TextDocument, start: string, end: string): Range {
 	return new Range(document.positionAt(parseInt(start)), document.positionAt(parseInt(end)));
 }
 
-function prepareRename(document: TextDocument, position: Position, token: CancellationToken) : ProviderResult<Range> {
-	let output = runCompiler(document, '--prepare-rename', document.offsetAt(position));
+async function prepareRename(document: TextDocument, position: Position, token: CancellationToken) : Promise<Range> {
+	let output = await languageServer.request('prepare-rename', document, position);
 
 	for (let { type, items } of output) {
 		if (type === 'placeholder') {
@@ -41,8 +43,8 @@ function prepareRename(document: TextDocument, position: Position, token: Cancel
 	throw new Error(`You cannot rename this element.`);
 }
 
-function provideRenameEdits(document: TextDocument, position: Position, newName: string, token: CancellationToken) : ProviderResult<WorkspaceEdit> {
-	let output = runCompiler(document, '--provide-rename-edits', document.offsetAt(position), [`--new-name=${newName}`]);
+async function provideRenameEdits(document: TextDocument, position: Position, newName: string, token: CancellationToken) : Promise<WorkspaceEdit> {
+	let output = await languageServer.request('provide-rename-edits', document, position, newName);
 	let edit = new WorkspaceEdit();
 	
 	for (let { type, items } of output) {
@@ -57,7 +59,7 @@ function provideRenameEdits(document: TextDocument, position: Position, newName:
 }
 
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
-	let lines = runCompiler(textDocument, '--validate');
+	let lines = await languageServer.request('validate', textDocument);
 	let uriToDiagnostics : Map<Uri, Diagnostic[]> = new Map();
 	let currentDiagnosticList : Diagnostic[] = [];
 	let currentDocument : TextDocument = textDocument;
@@ -103,30 +105,11 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 	}
 }
 
-function runCompiler(textDocument: TextDocument, option: string, cursor: number = -1, otherOptions : string[] = []): { type: string, items: string[], content: string }[] {
-	let cursorOption = cursor >= 0 ? `--cursor=${cursor}` : '';
-	let command = `${COMPILER_BINARY_PATH} ${textDocument.uri.fsPath} --infer-root ${option} ${cursorOption} ${otherOptions.join(' ')}`;
-
-	// log(command);
-
-	return execSync(command)
-		?.toString('utf8')
-		.split('\n')
-		.filter(str => str)
-		.map(str => str.split(';'))
-		.map(array => {
-			let type = array[0];
-			let items = array.slice(1);
-			let content = array[1];
-
-			return { type, items, content };
-		});
-}
-
 function compileCompiler() {
 	let modeOption = MODE === 'release' ? '--release' : '';
 	
-	execSync(`cd ${COMPILER_ROOT_PATH} && cargo build ${modeOption}`)
+	console.log(`compiling compiler in ${MODE} mode...`);
+	execSync(`cd ${COMPILER_ROOT_PATH} && cargo build ${modeOption}`);
 }
 
 function log(string: string) {
