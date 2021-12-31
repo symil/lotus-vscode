@@ -1,12 +1,13 @@
 import * as path from 'path';
 import { execSync, spawn } from 'child_process';
-import { workspace, languages, ExtensionContext, TextDocument, Position, Range, CancellationToken, ProviderResult, WorkspaceEdit, Diagnostic, DiagnosticSeverity, Uri, window } from 'vscode';
+import { workspace, languages, ExtensionContext, TextDocument, Position, Range, CancellationToken, ProviderResult, WorkspaceEdit, Diagnostic, DiagnosticSeverity, Uri, window, Definition, Location } from 'vscode';
 import { LanguageServer } from './language-server';
 
 const DEBUG = true;
 const MODE = DEBUG ? 'debug' : 'release';
 const COMPILER_ROOT_PATH = path.join(process.env.HOME || '', 'prog', 'lotus', 'lotus-compiler');
 const COMPILER_BINARY_PATH = path.join(COMPILER_ROOT_PATH, 'target', MODE, 'lotus-compiler');
+const LOTUS_DOCUMENT_SELECTOR = { scheme: 'file', language: 'lotus' };
 
 compileCompiler();
 
@@ -17,9 +18,13 @@ let languageServer = new LanguageServer(COMPILER_BINARY_PATH);
 // outputChannel.show();
 
 export function activate(context: ExtensionContext) {
-	languages.registerRenameProvider({ scheme: 'file', language: 'lotus' }, {
+	languages.registerRenameProvider(LOTUS_DOCUMENT_SELECTOR, {
 		prepareRename,
 		provideRenameEdits
+	});
+
+	languages.registerDefinitionProvider(LOTUS_DOCUMENT_SELECTOR, {
+		provideDefinition
 	});
 
 	workspace.onDidSaveTextDocument(validateTextDocument);
@@ -29,8 +34,24 @@ function makeRange(document: TextDocument, start: string, end: string): Range {
 	return new Range(document.positionAt(parseInt(start)), document.positionAt(parseInt(end)));
 }
 
+async function provideDefinition(document: TextDocument, position: Position, token: CancellationToken) : Promise<Definition> {
+	let output = await languageServer.command('provide-definition', document, position);
+
+	for (let { type, items } of output) {
+		if (type === 'definition') {
+			let [filePath, offset] = items;
+			let fileUri = Uri.file(filePath);
+			let targetDocument = await workspace.openTextDocument(fileUri);
+
+			return new Location(fileUri, targetDocument.positionAt(parseInt(offset)));
+		}
+	}
+
+	throw new Error(`No definition for this element.`);
+}
+
 async function prepareRename(document: TextDocument, position: Position, token: CancellationToken) : Promise<Range> {
-	let output = await languageServer.request('prepare-rename', document, position);
+	let output = await languageServer.command('prepare-rename', document, position);
 
 	for (let { type, items } of output) {
 		if (type === 'placeholder') {
@@ -44,7 +65,7 @@ async function prepareRename(document: TextDocument, position: Position, token: 
 }
 
 async function provideRenameEdits(document: TextDocument, position: Position, newName: string, token: CancellationToken) : Promise<WorkspaceEdit> {
-	let output = await languageServer.request('provide-rename-edits', document, position, newName);
+	let output = await languageServer.command('provide-rename-edits', document, position, newName);
 	let edit = new WorkspaceEdit();
 	
 	for (let { type, items } of output) {
@@ -59,7 +80,7 @@ async function provideRenameEdits(document: TextDocument, position: Position, ne
 }
 
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
-	let lines = await languageServer.request('validate', textDocument);
+	let lines = await languageServer.command('validate', textDocument);
 	let uriToDiagnostics : Map<Uri, Diagnostic[]> = new Map();
 	let currentDiagnosticList : Diagnostic[] = [];
 	let currentDocument : TextDocument = textDocument;

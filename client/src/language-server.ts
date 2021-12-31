@@ -2,7 +2,7 @@ import * as net from 'net';
 import { spawn } from 'child_process';
 import { Position, TextDocument } from 'vscode';
 
-export type CommandName = 'validate' | 'prepare-rename' | 'provide-rename-edits';
+export type CommandName = 'validate' | 'prepare-rename' | 'provide-rename-edits' | 'provide-definition';
 export type CommandAnswerFragment = { type: string, items: string[] };
 
 const PORT = 9609;
@@ -37,7 +37,7 @@ export class LanguageServer {
 		});
 	}
 
-	async request(name: CommandName, document: TextDocument, cursorPosition: Position | null = null, newName: string = ''): Promise<CommandAnswerFragment[]> {
+	async command(name: CommandName, document: TextDocument, cursorPosition: Position | null = null, newName: string = ''): Promise<CommandAnswerFragment[]> {
 		await this.connectionOpen;
 
 		let commandId = this.nextCommandId;
