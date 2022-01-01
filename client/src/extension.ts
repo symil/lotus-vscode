@@ -3,8 +3,8 @@ import { execSync } from 'child_process';
 import { workspace, languages, ExtensionContext, TextDocument, Position, Range, CancellationToken, ProviderResult, WorkspaceEdit, Diagnostic, DiagnosticSeverity, Uri, window, Definition, Location, Hover, MarkdownString } from 'vscode';
 import { LanguageServer } from './language-server';
 
-// const MODE = 'debug';
-const MODE = 'release';
+// const MODE : string = 'debug';
+const MODE  : string = 'release';
 const COMPILER_ROOT_PATH = path.join(process.env.HOME || '', 'prog', 'lotus', 'lotus-compiler');
 const COMPILER_BINARY_PATH = path.join(COMPILER_ROOT_PATH, 'target', MODE, 'lotus-compiler');
 const LOTUS_DOCUMENT_SELECTOR = { scheme: 'file', language: 'lotus' };
