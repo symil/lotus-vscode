@@ -2,7 +2,7 @@ import * as net from 'net';
 import { spawn } from 'child_process';
 import { Position, TextDocument } from 'vscode';
 
-export type CommandName = 'validate' | 'prepare-rename' | 'provide-rename-edits' | 'provide-definition';
+export type CommandName = 'validate' | 'prepare-rename' | 'provide-rename-edits' | 'provide-definition' | 'provide-hover';
 export type CommandAnswerFragment = { type: string, items: string[] };
 
 const PORT = 9609;

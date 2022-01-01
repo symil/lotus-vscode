@@ -1,6 +1,6 @@
 import * as path from 'path';
-import { execSync, spawn } from 'child_process';
-import { workspace, languages, ExtensionContext, TextDocument, Position, Range, CancellationToken, ProviderResult, WorkspaceEdit, Diagnostic, DiagnosticSeverity, Uri, window, Definition, Location } from 'vscode';
+import { execSync } from 'child_process';
+import { workspace, languages, ExtensionContext, TextDocument, Position, Range, CancellationToken, ProviderResult, WorkspaceEdit, Diagnostic, DiagnosticSeverity, Uri, window, Definition, Location, Hover, MarkdownString } from 'vscode';
 import { LanguageServer } from './language-server';
 
 const DEBUG = true;
@@ -27,11 +27,35 @@ export function activate(context: ExtensionContext) {
 		provideDefinition
 	});
 
+	languages.registerHoverProvider(LOTUS_DOCUMENT_SELECTOR, {
+		provideHover
+	});
+
 	workspace.onDidSaveTextDocument(validateTextDocument);
 }
 
 function makeRange(document: TextDocument, start: string, end: string): Range {
 	return new Range(document.positionAt(parseInt(start)), document.positionAt(parseInt(end)));
+}
+
+async function provideHover(document: TextDocument, position: Position, token: CancellationToken): Promise<Hover> {
+	let output = await languageServer.command('provide-hover', document, position);
+
+	for (let { type, items } of output) {
+		if (type === 'hover') {
+			let [start, end, typeInfo] = items;
+			let range = makeRange(document, start, end);
+			let contents = new MarkdownString();
+
+			contents.supportHtml = true;
+			contents.isTrusted = true;
+			contents.appendCodeblock(typeInfo, 'lotus');
+
+			return new Hover(contents, range);
+		}
+	}
+
+	return null;
 }
 
 async function provideDefinition(document: TextDocument, position: Position, token: CancellationToken) : Promise<Definition> {
