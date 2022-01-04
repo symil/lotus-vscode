@@ -1,23 +1,25 @@
 import * as path from 'path';
 import { execSync } from 'child_process';
-import { workspace, languages, ExtensionContext, TextDocument, Position, Range, CancellationToken, ProviderResult, WorkspaceEdit, Diagnostic, DiagnosticSeverity, Uri, window, Definition, Location, Hover, MarkdownString } from 'vscode';
+import { workspace, languages, ExtensionContext, TextDocument, Position, Range, CancellationToken, ProviderResult, WorkspaceEdit, Diagnostic, DiagnosticSeverity, Uri, window, Definition, Location, Hover, MarkdownString, CompletionContext, CompletionItem, CompletionList } from 'vscode';
 import { LanguageServer } from './language-server';
+import { stringToCompletionItemKind } from './utils';
 
-// const MODE : string = 'debug';
-const MODE  : string = 'release';
+const MODE : string = 'debug';
+// const MODE  : string = 'release';
 const COMPILER_ROOT_PATH = path.join(process.env.HOME || '', 'prog', 'lotus', 'lotus-compiler');
 const COMPILER_BINARY_PATH = path.join(COMPILER_ROOT_PATH, 'target', MODE, 'lotus-compiler');
 const LOTUS_DOCUMENT_SELECTOR = { scheme: 'file', language: 'lotus' };
 
-compileCompiler();
-
 let diagnosticCollection = languages.createDiagnosticCollection('lotus');
 let outputChannel = window.createOutputChannel('Lotus');
-let languageServer = new LanguageServer(COMPILER_BINARY_PATH);
+let languageServer : LanguageServer;
 
 // outputChannel.show();
 
 export function activate(context: ExtensionContext) {
+	compileCompiler();
+	languageServer = new LanguageServer(COMPILER_BINARY_PATH, log);
+
 	languages.registerRenameProvider(LOTUS_DOCUMENT_SELECTOR, {
 		prepareRename,
 		provideRenameEdits
@@ -31,11 +33,36 @@ export function activate(context: ExtensionContext) {
 		provideHover
 	});
 
+	languages.registerCompletionItemProvider(LOTUS_DOCUMENT_SELECTOR, {
+		provideCompletionItems
+	}, '.');
+
 	workspace.onDidSaveTextDocument(validateTextDocument);
 }
 
-function makeRange(document: TextDocument, start: string, end: string): Range {
-	return new Range(document.positionAt(parseInt(start)), document.positionAt(parseInt(end)));
+async function provideCompletionItems(document: TextDocument, position: Position, token: CancellationToken, context: CompletionContext): Promise<null | CompletionList> {
+	let output = await languageServer.command('provide-completion-items', document, position, document.getText());
+	let result = [];
+
+	for (let { content, type, items } of output) {
+		log(content);
+		if (type === 'item') {
+			let [label, kind, description, detail, documentation] = items;
+			let completionItem = new CompletionItem({ label, description });
+			
+			completionItem.kind = stringToCompletionItemKind(kind);
+			completionItem.detail = detail;
+			completionItem.documentation = documentation;
+
+			result.push(completionItem);
+		}
+	}
+
+	if (result.length === 0) {
+		return null;
+	}
+	
+	return new CompletionList(result);
 }
 
 async function provideHover(document: TextDocument, position: Position, token: CancellationToken): Promise<Hover> {
@@ -104,12 +131,12 @@ async function provideRenameEdits(document: TextDocument, position: Position, ne
 }
 
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
-	let lines = await languageServer.command('validate', textDocument);
+	let output = await languageServer.command('validate', textDocument);
 	let uriToDiagnostics : Map<Uri, Diagnostic[]> = new Map();
 	let currentDiagnosticList : Diagnostic[] = [];
 	let currentDocument : TextDocument = textDocument;
 
-	for (let { type, items } of lines) {
+	for (let { type, items } of output) {
 		if (type === 'file') {
 			let [filePath] = items;
 			let fileUri = Uri.file(filePath);
@@ -153,8 +180,12 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 function compileCompiler() {
 	let modeOption = MODE === 'release' ? '--release' : '';
 	
-	console.log(`compiling compiler in ${MODE} mode...`);
+	log(`compiling compiler in ${MODE} mode...`);
 	execSync(`cd ${COMPILER_ROOT_PATH} && cargo build ${modeOption}`);
+}
+
+function makeRange(document: TextDocument, start: string, end: string): Range {
+	return new Range(document.positionAt(parseInt(start)), document.positionAt(parseInt(end)));
 }
 
 function log(string: string) {
