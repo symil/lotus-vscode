@@ -45,7 +45,6 @@ async function provideCompletionItems(document: TextDocument, position: Position
 	let result = [];
 
 	for (let { content, type, items } of output) {
-		log(content);
 		if (type === 'item') {
 			let [label, kind, description, detail, documentation] = items;
 			let completionItem = new CompletionItem({ label, description });
