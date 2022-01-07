@@ -1,6 +1,6 @@
 import * as path from 'path';
 import { execSync } from 'child_process';
-import { workspace, languages, ExtensionContext, TextDocument, Position, Range, CancellationToken, ProviderResult, WorkspaceEdit, Diagnostic, DiagnosticSeverity, Uri, window, Definition, Location, Hover, MarkdownString, CompletionContext, CompletionItem, CompletionList } from 'vscode';
+import { workspace, languages, ExtensionContext, TextDocument, Position, Range, CancellationToken, ProviderResult, WorkspaceEdit, Diagnostic, DiagnosticSeverity, Uri, window, Definition, Location, Hover, MarkdownString, CompletionContext, CompletionItem, CompletionList, SnippetString } from 'vscode';
 import { LanguageServer } from './language-server';
 import { stringToCompletionItemKind } from './utils';
 
@@ -35,23 +35,35 @@ export function activate(context: ExtensionContext) {
 
 	languages.registerCompletionItemProvider(LOTUS_DOCUMENT_SELECTOR, {
 		provideCompletionItems
-	}, '.');
+	}, '.', ':', '@');
 
 	workspace.onDidSaveTextDocument(validateTextDocument);
 }
 
 async function provideCompletionItems(document: TextDocument, position: Position, token: CancellationToken, context: CompletionContext): Promise<null | CompletionList> {
+	if ([':'].includes(context.triggerCharacter)) {
+		let previousCharacter = document.getText(new Range(position.translate(0, -2), position.translate(0, -1)));
+
+		if (previousCharacter != context.triggerCharacter) {
+			return null;
+		}
+	}
+	
 	let output = await languageServer.command('provide-completion-items', document, position, document.getText());
 	let result = [];
 
-	for (let { content, type, items } of output) {
+	for (let { type, items } of output) {
 		if (type === 'item') {
-			let [label, kind, description, detail, documentation] = items;
+			let [label, kind, description, detail, documentation, insertText] = items;
 			let completionItem = new CompletionItem({ label, description });
 			
 			completionItem.kind = stringToCompletionItemKind(kind);
 			completionItem.detail = detail;
 			completionItem.documentation = documentation;
+
+			if (insertText) {
+				completionItem.insertText = new SnippetString(insertText);
+			}
 
 			result.push(completionItem);
 		}

@@ -277,7 +277,7 @@
 				},
 				{
 					"comment": "type declarations",
-					"match": "\\b(type|enum|class|view|interface)(\\s*\\((void|i32|f32)\\))?\\s+([A-Z][A-Za-z0-9]*)\\b",
+					"match": "\\b(type|enum|class|view|event|interface)(\\s*\\((void|i32|f32)\\))?\\s+([A-Z][A-Za-z0-9]*)\\b",
 					"captures": {
 						"1": {
 							"name": "keyword.declaration.type.lotus storage.type.lotus"
