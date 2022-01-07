@@ -8,7 +8,8 @@ const MODE : string = 'debug';
 // const MODE  : string = 'release';
 const COMPILER_ROOT_PATH = path.join(process.env.HOME || '', 'prog', 'lotus', 'lotus-compiler');
 const COMPILER_BINARY_PATH = path.join(COMPILER_ROOT_PATH, 'target', MODE, 'lotus-compiler');
-const LOTUS_DOCUMENT_SELECTOR = { scheme: 'file', language: 'lotus' };
+const LOTUS_LANGUAGE_ID = 'lotus';
+const LOTUS_DOCUMENT_SELECTOR = { scheme: 'file', language: LOTUS_LANGUAGE_ID };
 
 let diagnosticCollection = languages.createDiagnosticCollection('lotus');
 let outputChannel = window.createOutputChannel('Lotus');
@@ -49,7 +50,7 @@ async function provideCompletionItems(document: TextDocument, position: Position
 		}
 	}
 	
-	let output = await languageServer.command('provide-completion-items', { document, position, sendDocumentContent: true });
+	let output = await languageServer.command('provide-completion-items', { document, position, sendContent: true });
 	let result = [];
 
 	for (let { type, items } of output) {
@@ -144,6 +145,10 @@ async function provideRenameEdits(document: TextDocument, position: Position, ne
 }
 
 async function validateTextDocument(document: TextDocument): Promise<void> {
+	if (document.languageId !== LOTUS_LANGUAGE_ID) {
+		return;
+	}
+
 	let output = await languageServer.command('validate', { document });
 	let uriToDiagnostics : Map<Uri, Diagnostic[]> = new Map();
 	let currentDiagnosticList : Diagnostic[] = [];

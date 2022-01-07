@@ -7,7 +7,7 @@ export type CommandAnswerFragment = { content: string, type: string, items: stri
 export interface CommandParameters {
 	document: TextDocument,
 	position?: Position,
-	sendDocumentContent?: boolean,
+	sendContent?: boolean,
 	newName?: string
 }
 
@@ -53,7 +53,7 @@ export class LanguageServer {
 		let document = parameters.document;
 		let filePath = document.uri.fsPath;
 		let cursorIndex = parameters.position ? document.offsetAt(parameters.position) : -1;
-		let fileContent = parameters.sendDocumentContent ? document.getText() : '';
+		let fileContent = parameters.sendContent ? document.getText() : '';
 		let newName = parameters.newName ? parameters.newName : '';
 		let command = `${commandId}${SEPARATOR}${name}${SEPARATOR}${filePath}${SEPARATOR}${cursorIndex}${SEPARATOR}${fileContent}${SEPARATOR}${newName}`;
 
