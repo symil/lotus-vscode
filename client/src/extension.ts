@@ -49,7 +49,7 @@ async function provideCompletionItems(document: TextDocument, position: Position
 		}
 	}
 	
-	let output = await languageServer.command('provide-completion-items', document, position, document.getText());
+	let output = await languageServer.command('provide-completion-items', { document, position, sendDocumentContent: true });
 	let result = [];
 
 	for (let { type, items } of output) {
@@ -77,7 +77,7 @@ async function provideCompletionItems(document: TextDocument, position: Position
 }
 
 async function provideHover(document: TextDocument, position: Position, token: CancellationToken): Promise<Hover> {
-	let output = await languageServer.command('provide-hover', document, position);
+	let output = await languageServer.command('provide-hover', { document, position });
 
 	for (let { type, items } of output) {
 		if (type === 'hover') {
@@ -97,7 +97,7 @@ async function provideHover(document: TextDocument, position: Position, token: C
 }
 
 async function provideDefinition(document: TextDocument, position: Position, token: CancellationToken) : Promise<Definition> {
-	let output = await languageServer.command('provide-definition', document, position);
+	let output = await languageServer.command('provide-definition', { document, position });
 
 	for (let { type, items } of output) {
 		if (type === 'definition') {
@@ -113,7 +113,7 @@ async function provideDefinition(document: TextDocument, position: Position, tok
 }
 
 async function prepareRename(document: TextDocument, position: Position, token: CancellationToken) : Promise<Range> {
-	let output = await languageServer.command('prepare-rename', document, position);
+	let output = await languageServer.command('prepare-rename', { document, position });
 
 	for (let { type, items } of output) {
 		if (type === 'placeholder') {
@@ -127,25 +127,27 @@ async function prepareRename(document: TextDocument, position: Position, token: 
 }
 
 async function provideRenameEdits(document: TextDocument, position: Position, newName: string, token: CancellationToken) : Promise<WorkspaceEdit> {
-	let output = await languageServer.command('provide-rename-edits', document, position, newName);
+	let output = await languageServer.command('provide-rename-edits', { document, position, newName });
 	let edit = new WorkspaceEdit();
 	
 	for (let { type, items } of output) {
 		if (type === 'replace') {
 			let [filePath, start, end, replacement] = items;
+			let fileUri = Uri.file(filePath);
+			let documentToEdit = await workspace.openTextDocument(fileUri);
 
-			edit.replace(Uri.file(filePath), makeRange(document, start, end), replacement);
+			edit.replace(fileUri, makeRange(documentToEdit, start, end), replacement);
 		}
 	}
 
 	return edit;
 }
 
-async function validateTextDocument(textDocument: TextDocument): Promise<void> {
-	let output = await languageServer.command('validate', textDocument);
+async function validateTextDocument(document: TextDocument): Promise<void> {
+	let output = await languageServer.command('validate', { document });
 	let uriToDiagnostics : Map<Uri, Diagnostic[]> = new Map();
 	let currentDiagnosticList : Diagnostic[] = [];
-	let currentDocument : TextDocument = textDocument;
+	let currentDocument : TextDocument = document;
 
 	for (let { type, items } of output) {
 		if (type === 'file') {

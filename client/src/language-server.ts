@@ -2,8 +2,14 @@ import * as net from 'net';
 import { spawn } from 'child_process';
 import { Position, TextDocument } from 'vscode';
 
-export type CommandName = 'validate' | 'prepare-rename' | 'provide-rename-edits' | 'provide-definition' | 'provide-hover' | 'provide-completion-items';
+export type CommandName = 'validate' | 'prepare-rename' | 'provide-rename-edits' | 'provide-definition' | 'provide-hover' | 'provide-completion-items' | 'provide-signature-help';
 export type CommandAnswerFragment = { content: string, type: string, items: string[] };
+export interface CommandParameters {
+	document: TextDocument,
+	position?: Position,
+	sendDocumentContent?: boolean,
+	newName?: string
+}
 
 const SEPARATOR = '##';
 const PORT = 9609;
@@ -40,17 +46,16 @@ export class LanguageServer {
 		});
 	}
 
-	async command(name: CommandName, document: TextDocument, cursorPosition: Position | null = null, payload: string | null = null): Promise<CommandAnswerFragment[]> {
+	async command(name: CommandName, parameters: CommandParameters): Promise<CommandAnswerFragment[]> {
 		await this.connectionOpen;
 
 		let commandId = this.nextCommandId;
+		let document = parameters.document;
 		let filePath = document.uri.fsPath;
-		let cursorIndex = cursorPosition ? document.offsetAt(cursorPosition) : 0;
-		let command = `${commandId}${SEPARATOR}${name}${SEPARATOR}${filePath}${SEPARATOR}${cursorIndex}`;
-
-		if (payload !== null) {
-			command += `${SEPARATOR}${payload}`;
-		}
+		let cursorIndex = parameters.position ? document.offsetAt(parameters.position) : -1;
+		let fileContent = parameters.sendDocumentContent ? document.getText() : '';
+		let newName = parameters.newName ? parameters.newName : '';
+		let command = `${commandId}${SEPARATOR}${name}${SEPARATOR}${filePath}${SEPARATOR}${cursorIndex}${SEPARATOR}${fileContent}${SEPARATOR}${newName}`;
 
 		this.nextCommandId++;
 		this.connection.write(command);
