@@ -3,12 +3,12 @@ import { execSync } from 'child_process';
 import { workspace, languages, ExtensionContext, TextDocument, Position, Range, CancellationToken, ProviderResult, WorkspaceEdit, Diagnostic, DiagnosticSeverity, Uri, window, Definition, Location, Hover, MarkdownString, CompletionContext, CompletionItem, CompletionList, SnippetString, SignatureHelpContext, SignatureHelp, SignatureInformation, ParameterInformation } from 'vscode';
 import { LanguageServer } from './language-server';
 import { stringToCompletionItemKind } from './utils';
-import { CompletionItemKind } from 'vscode-languageclient';
 
-// const MODE : string = 'debug';
-const MODE  : string = 'release';
-const COMPILER_ROOT_PATH = path.join(process.env.HOME || '', 'prog', 'lotus', 'lotus-compiler');
-const COMPILER_BINARY_PATH = path.join(COMPILER_ROOT_PATH, 'target', MODE, 'lotus-compiler');
+const COMPILER_MODE : 'self' | 'release' | 'debug' = 'release';
+const COMPILER_BINARY_NAME = 'lotus-compiler';
+const EXTENSION_ROOT_PATH = path.join(__dirname, '..', '..');
+const SELF_COMPILER_ROOT_PATH = path.join(EXTENSION_ROOT_PATH, 'server');
+const SYSTEM_COMPILER_ROOT_PATH = path.join(process.env.HOME || '', 'prog', 'lotus', 'lotus-compiler');
 const LOTUS_LANGUAGE_ID = 'lotus';
 const LOTUS_DOCUMENT_SELECTOR = { scheme: 'file', language: LOTUS_LANGUAGE_ID };
 
@@ -19,8 +19,11 @@ let languageServer : LanguageServer;
 // outputChannel.show();
 
 export function activate(context: ExtensionContext) {
-	compileCompiler();
-	languageServer = new LanguageServer(COMPILER_BINARY_PATH, log);
+	let compilerPath = getCompilerPath(COMPILER_MODE);
+
+	log(compilerPath);
+
+	languageServer = new LanguageServer(compilerPath, log);
 
 	languages.registerRenameProvider(LOTUS_DOCUMENT_SELECTOR, {
 		prepareRename,
@@ -90,7 +93,7 @@ async function provideCompletionItems(document: TextDocument, position: Position
 		if (type === 'item') {
 			let [label, kind, description, detail, documentation, insertText] = items;
 			let completionItem = new CompletionItem({ label, description });
-			
+
 			completionItem.kind = stringToCompletionItemKind(kind);
 			completionItem.detail = detail;
 			completionItem.documentation = documentation;
@@ -235,11 +238,20 @@ async function validateTextDocument(document: TextDocument): Promise<void> {
 	}
 }
 
-function compileCompiler() {
-	let modeOption = MODE === 'release' ? '--release' : '';
-	
-	log(`compiling compiler in ${MODE} mode...`);
-	execSync(`cd ${COMPILER_ROOT_PATH} && cargo build ${modeOption}`);
+function getCompilerPath(mode: string) {
+	let rootPath = '';
+
+	if (mode === 'self') {
+		rootPath = SELF_COMPILER_ROOT_PATH;
+	} else {
+		let modeOption = mode === 'release' ? '--release' : '';
+
+		execSync(`cd ${SYSTEM_COMPILER_ROOT_PATH} && cargo build ${modeOption}`);
+
+		rootPath = path.join(SYSTEM_COMPILER_ROOT_PATH, 'target', mode);
+	}
+
+	return path.join(rootPath, COMPILER_BINARY_NAME);
 }
 
 function makeRange(document: TextDocument, start: string, end: string): Range {
