@@ -1,0 +1,142 @@
+<canvas width="600" height="600" id="canvas" style="border: 1px solid black; display: block; margin: auto; margin-top: 100px;"></canvas>
+<script>
+
+const SIZE = 600;
+const PI_2 = Math.PI * 2;
+const TRANSPARENT = 'rgba(0,0,0,0)';
+
+const ICON_COLOR = 'darkorchid';
+const CENTER_X = 0.5;
+const CENTER_Y = 0.65;
+
+const PRIMARY_PETAL_ANGLE = 0;
+const PRIMARY_PETAL_WIDTH = 0.35;
+const PRIMARY_PETAL_HEIGHT = 0.55;
+const PRIMARY_PETAL_GROW_POINT_Y = 0.7;
+const PRIMARY_PETAL_GROW_WIDTH = 1;
+
+const SECONDARY_PETAL_X_OFFSET = 0.2;
+const SECONDARY_PETAL_Y_OFFSET = 0.07;
+const SECONDARY_PETAL_ANGLE = 0.7;
+const SECONDARY_PETAL_WIDTH = 0.25;
+const SECONDARY_PETAL_HEIGHT = 0.35;
+const SECONDARY_PETAL_GROW_POINT_Y = 0.7;
+const SECONDARY_PETAL_GROW_WIDTH = 0.9;
+
+const BASE_Y_OFFSET = 0.35;
+
+function main() {
+    let canvas = document.querySelector('#canvas');
+    let ctx = canvas.getContext('2d');
+
+    v1(ctx);
+}
+
+function v1(ctx) {
+    let { x1, y1, x2, y2 } = drawPetal(ctx, {
+        color: ICON_COLOR,
+        baseX: CENTER_X - SECONDARY_PETAL_X_OFFSET,
+        baseY: CENTER_Y + SECONDARY_PETAL_Y_OFFSET,
+        baseAngle: -SECONDARY_PETAL_ANGLE,
+        baseWidth: SECONDARY_PETAL_WIDTH,
+        petalHeight: SECONDARY_PETAL_HEIGHT,
+        growPointYRatio: SECONDARY_PETAL_GROW_POINT_Y,
+        growWidthRatio: SECONDARY_PETAL_GROW_WIDTH
+    });
+
+    let { x1: x5, y1: y5, x2: x6, y2: y6 } = drawPetal(ctx, {
+        color: ICON_COLOR,
+        baseX: CENTER_X + SECONDARY_PETAL_X_OFFSET,
+        baseY: CENTER_Y + SECONDARY_PETAL_Y_OFFSET,
+        baseAngle: SECONDARY_PETAL_ANGLE,
+        baseWidth: SECONDARY_PETAL_WIDTH,
+        petalHeight: SECONDARY_PETAL_HEIGHT,
+        growPointYRatio: SECONDARY_PETAL_GROW_POINT_Y,
+        growWidthRatio: SECONDARY_PETAL_GROW_WIDTH
+    });
+
+    let { x1: x3, y1: y3, x2: x4, y2: y4 } = drawPetal(ctx, {
+        color: ICON_COLOR,
+        baseX: CENTER_X,
+        baseY: CENTER_Y,
+        baseAngle: PRIMARY_PETAL_ANGLE,
+        baseWidth: PRIMARY_PETAL_WIDTH,
+        petalHeight: PRIMARY_PETAL_HEIGHT,
+        growPointYRatio: PRIMARY_PETAL_GROW_POINT_Y,
+        growWidthRatio: PRIMARY_PETAL_GROW_WIDTH
+    });
+
+    let cpx = CENTER_X;
+    let cpy = CENTER_Y + BASE_Y_OFFSET;
+
+    draw(ctx, ICON_COLOR, [
+        ['move', x1, y1],
+        ['line', x2, y2],
+        ['line', x3, y3],
+        ['line', x4, y4],
+        ['line', x5, y5],
+        ['line', x6, y6],
+        ['curve', cpx, cpy, x1, y1],
+    ])
+}
+
+function drawPetal(ctx, { color, baseX, baseY, baseAngle, baseWidth, petalHeight, growPointYRatio, growWidthRatio }) {
+    let widthToHeightRatio = petalHeight / baseWidth;
+    let cos = Math.cos(baseAngle);
+    let sin = Math.sin(baseAngle);
+    let dx = cos * baseWidth / 2;
+    let dy = sin * baseWidth / 2;
+    let x1 = baseX - dx;
+    let y1 = baseY - dy;
+    let x2 = baseX + dx;
+    let y2 = baseY + dy;
+    let extremityX = baseX + dy * widthToHeightRatio * 2;
+    let extremityY = baseY - dx * widthToHeightRatio * 2;
+    let growX = mix(baseX, extremityX, growPointYRatio);
+    let growY = mix(baseY, extremityY, growPointYRatio);
+
+    let cpx1 = growX - dx * growWidthRatio;
+    let cpy1 = growY - dy * growWidthRatio;
+    let cpx2 = growX + dx * growWidthRatio;
+    let cpy2 = growY + dy * growWidthRatio;
+
+    ctx.beginPath();
+    ctx.moveTo(x1 * SIZE, y1 * SIZE);
+    ctx.quadraticCurveTo(cpx1 * SIZE, cpy1 * SIZE, extremityX * SIZE, extremityY * SIZE);
+    ctx.quadraticCurveTo(cpx2 * SIZE, cpy2 * SIZE, x2 * SIZE, y2 * SIZE);
+    ctx.fillStyle = color;
+    ctx.fill();
+
+    return { x1, y1, x2, y2 };
+}
+
+function draw(ctx, color, items) {
+    ctx.beginPath();
+
+    for (let item of items) {
+        let [name, x1, y1, x2, y2] = item;
+
+        x1 *= SIZE;
+        y1 *= SIZE;
+        x2 *= SIZE;
+        y2 *= SIZE;
+
+        if (name === 'move') {
+            ctx.moveTo(x1, y1);
+        } else if (name === 'line') {
+            ctx.lineTo(x1, y1);
+        } else if (name === 'curve') {
+            ctx.quadraticCurveTo(x1, y1, x2, y2);
+        }
+    }
+
+    ctx.fillStyle = color;
+    ctx.fill();
+}
+
+function mix(a, b, t) {
+    return a + (b - a) * t;
+}
+
+main();
+</script>

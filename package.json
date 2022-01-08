@@ -21,6 +21,11 @@
             "scopeName": "source.lotus",
             "path": "./syntaxes/lotus.tmLanguage.json"
         }],
+        "iconThemes": [{
+            "id": "lotus",
+            "label": "Lotus",
+            "path": "./fileicons/lotus-icon-theme.json"
+        }],
         "configuration": {
             "type": "object",
             "title": "Lotus",

@@ -1,0 +1,12 @@
+{
+	"iconDefinitions": {
+		"_lotus_file": {
+			// "iconPath": "./lotus.png"
+			"fontCharacter": "✽",
+			"fontColor": "#6495ED",
+		}
+	},
+	"languageIds": {
+		"lotus": "_lotus_file"
+	}
+}
