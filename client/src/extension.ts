@@ -1,11 +1,12 @@
 import * as path from 'path';
 import { execSync } from 'child_process';
-import { workspace, languages, ExtensionContext, TextDocument, Position, Range, CancellationToken, ProviderResult, WorkspaceEdit, Diagnostic, DiagnosticSeverity, Uri, window, Definition, Location, Hover, MarkdownString, CompletionContext, CompletionItem, CompletionList, SnippetString } from 'vscode';
+import { workspace, languages, ExtensionContext, TextDocument, Position, Range, CancellationToken, ProviderResult, WorkspaceEdit, Diagnostic, DiagnosticSeverity, Uri, window, Definition, Location, Hover, MarkdownString, CompletionContext, CompletionItem, CompletionList, SnippetString, SignatureHelpContext, SignatureHelp, SignatureInformation, ParameterInformation } from 'vscode';
 import { LanguageServer } from './language-server';
 import { stringToCompletionItemKind } from './utils';
+import { CompletionItemKind } from 'vscode-languageclient';
 
-const MODE : string = 'debug';
-// const MODE  : string = 'release';
+// const MODE : string = 'debug';
+const MODE  : string = 'release';
 const COMPILER_ROOT_PATH = path.join(process.env.HOME || '', 'prog', 'lotus', 'lotus-compiler');
 const COMPILER_BINARY_PATH = path.join(COMPILER_ROOT_PATH, 'target', MODE, 'lotus-compiler');
 const LOTUS_LANGUAGE_ID = 'lotus';
@@ -34,11 +35,40 @@ export function activate(context: ExtensionContext) {
 		provideHover
 	});
 
+	languages.registerSignatureHelpProvider(LOTUS_DOCUMENT_SELECTOR, {
+		provideSignatureHelp
+	}, '(', ',');
+
 	languages.registerCompletionItemProvider(LOTUS_DOCUMENT_SELECTOR, {
 		provideCompletionItems
 	}, '.', ':', '@');
 
 	workspace.onDidSaveTextDocument(validateTextDocument);
+}
+
+async function provideSignatureHelp(document: TextDocument, position: Position, token: CancellationToken, context: SignatureHelpContext): Promise<SignatureHelp> {
+	let output = await languageServer.command('provide-signature-help', { document, position, sendContent: true });
+	let result : SignatureHelp | null = null;
+
+	for (let { type, items } of output) {
+		if (type == 'signature') {
+			let [ label, activeParameter, ...parameters ] = items;
+
+			let signature = new SignatureInformation(label);
+			signature.activeParameter = parseInt(activeParameter);
+			signature.parameters = parameters.map(range => {
+				let [start, end] = range.split(':').map(str => parseInt(str));
+
+				return new ParameterInformation([start, end]);
+			});
+
+			result = new SignatureHelp();
+			result.activeSignature = 0;
+			result.signatures = [signature];
+		}
+	}
+
+	return result;
 }
 
 async function provideCompletionItems(document: TextDocument, position: Position, token: CancellationToken, context: CompletionContext): Promise<null | CompletionList> {
@@ -61,6 +91,13 @@ async function provideCompletionItems(document: TextDocument, position: Position
 			completionItem.kind = stringToCompletionItemKind(kind);
 			completionItem.detail = detail;
 			completionItem.documentation = documentation;
+
+			if (completionItem.kind === CompletionItemKind.Function || completionItem.kind === CompletionItemKind.Method) {
+				completionItem.command = {
+					title: 'signature help',
+					command: 'editor.action.triggerParameterHints'
+				};
+			}
 
 			if (insertText) {
 				completionItem.insertText = new SnippetString(insertText);
