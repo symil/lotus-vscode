@@ -12,6 +12,9 @@
 			"include": "#wasm"
 		},
 		{
+			"include": "#imports"
+		},
+		{
 			"include": "#lvariables"
 		},
 		{
@@ -64,6 +67,22 @@
 					"comment": "operators",
 					"name": "keyword.operator.lotus",
 					"match": "(=>|\\+=|-=|\\*=|/=|%=|\\^=|&=|\\|=|<<=|>>=|\\+|-|\\*|/|%|<<|>>|&&|\\|\\||&|\\||==|!=|>=|>|<=|<|=|!|\\^|~)"
+				}
+			]
+		},
+		"imports": {
+			"patterns": [
+				{
+					"comment": "imports",
+					"match": "\\b(import)\\s+(\\w+\\.\\w+)\\b",
+					"captures": {
+						"1": {
+							"name": "keyword"
+						},
+						"2": {
+							"name": "constant.character.set.regexp"
+						}
+					}
 				}
 			]
 		},
