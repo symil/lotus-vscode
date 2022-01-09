@@ -250,16 +250,17 @@ async function validateTextDocument(document: TextDocument): Promise<void> {
 	}
 }
 
-function createServer(mode): LanguageServer {
+function createServer(version): LanguageServer {
 	let rootPath = '';
+	let serverPath = '';
 
-	if (mode === 'self') {
+	if (version === 'self') {
 		rootPath = SELF_SERVER_ROOT_PATH;
-	} else {
+	} else if (version.startsWith('system')) {
 		let releaseOption = '';
 		let targetDirectory = 'debug';
 
-		if (mode.includes('release')) {
+		if (version.includes('release')) {
 			releaseOption = '--release';
 			targetDirectory = 'release';
 		}
@@ -271,7 +272,9 @@ function createServer(mode): LanguageServer {
 		rootPath = path.join(SYSTEM_SERVER_ROOT_PATH, 'target', targetDirectory);
 	}
 
-	let serverPath = path.join(rootPath, SERVER_BINARY_NAME);
+	if (rootPath) {
+		serverPath = path.join(rootPath, SERVER_BINARY_NAME);
+	}
 
 	return new LanguageServer(serverPath, log);
 }

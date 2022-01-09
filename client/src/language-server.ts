@@ -26,6 +26,12 @@ export class LanguageServer {
 		let connectionOpenCallback;
 
 		this.log = log;
+
+		if (!serverPath) {
+			this.log('language server disabled');
+			return;
+		}
+
 		this.nextCommandId = 1;
 		this.promises = new Map();
 		this.serverProcess = spawn(serverPath, ['--server']);
@@ -45,6 +51,10 @@ export class LanguageServer {
 	}
 
 	async command(name: CommandName, parameters: CommandParameters): Promise<CommandAnswerFragment[]> {
+		if (!this.serverProcess) {
+			return [];
+		}
+
 		await this.connectionOpen;
 
 		let commandId = this.nextCommandId;
