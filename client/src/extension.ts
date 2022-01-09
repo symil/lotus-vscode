@@ -58,7 +58,7 @@ function handleConfigurationChange() {
 }
 
 function getServerVersionFromSettings(): string {
-	return workspace.getConfiguration().get('lotus.version', 'self') as string;
+	return workspace.getConfiguration().get('lotus.languageServerVersion', 'self') as string;
 }
 
 async function provideSignatureHelp(document: TextDocument, position: Position, token: CancellationToken, context: SignatureHelpContext): Promise<SignatureHelp> {

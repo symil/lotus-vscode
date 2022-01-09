@@ -30,7 +30,7 @@
             "type": "object",
             "title": "Lotus",
             "properties": {
-                "lotus.version": {
+                "lotus.languageServerVersion": {
                     "scope": "window",
                     "type": "string",
                     "enum": [
@@ -40,7 +40,7 @@
                         "system (debug)"
                     ],
                     "default": "self",
-                    "description": "Which version of the language server should be used."
+                    "description": "Language server version to use."
                 }
             }
         }
