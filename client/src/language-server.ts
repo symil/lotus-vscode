@@ -22,23 +22,21 @@ export class LanguageServer {
 	nextCommandId: number
 	promises: Map<number, (value: any) => void>
 
-	constructor(compilerPath: string, log: (string) => void) {
+	constructor(serverPath: string, log: (string) => void) {
 		let connectionOpenCallback;
 
 		this.log = log;
 		this.nextCommandId = 1;
 		this.promises = new Map();
-		this.serverProcess = spawn(compilerPath, ['--server']);
+		this.serverProcess = spawn(serverPath, ['--server']);
 		this.connectionOpen = new Promise(resolve => connectionOpenCallback = resolve);
 
 		this.log('starting language server...');
 		this.serverProcess.stdout.on('data', (data) => {
 			this.log(data.toString().trim())
 			if (!this.connection) {
-				this.log('opening connection to language server...');
 				this.connection = net.createConnection(PORT);
 				this.connection.on('connect', () => {
-					this.log('setup completed')
 					connectionOpenCallback();
 				});
 				this.connection.on('data', data => this._onData(data));
@@ -81,5 +79,12 @@ export class LanguageServer {
 		this.promises.delete(commandId);
 		
 		resolve(result);
+	}
+
+	kill() {
+		if (this.serverProcess) {
+			this.serverProcess.kill();
+			this.serverProcess = null;
+		}
 	}
 }

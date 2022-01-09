@@ -4,24 +4,23 @@ import { workspace, languages, ExtensionContext, TextDocument, Position, Range, 
 import { LanguageServer } from './language-server';
 import { stringToCompletionItemKind } from './utils';
 
-const COMPILER_MODE : 'self' | 'release' | 'debug' = 'release';
-const COMPILER_BINARY_NAME = 'lotus-compiler';
+const SERVER_BINARY_NAME = 'lotus-compiler';
 const EXTENSION_ROOT_PATH = path.join(__dirname, '..', '..');
-const SELF_COMPILER_ROOT_PATH = path.join(EXTENSION_ROOT_PATH, 'server');
-const SYSTEM_COMPILER_ROOT_PATH = path.join(process.env.HOME || '', 'prog', 'lotus', 'lotus-compiler');
+const SELF_SERVER_ROOT_PATH = path.join(EXTENSION_ROOT_PATH, 'server');
+const SYSTEM_SERVER_ROOT_PATH = path.join(process.env.HOME || '', 'prog', 'lotus', 'lotus-compiler');
 const LOTUS_LANGUAGE_ID = 'lotus';
 const LOTUS_DOCUMENT_SELECTOR = { scheme: 'file', language: LOTUS_LANGUAGE_ID };
 
 let diagnosticCollection = languages.createDiagnosticCollection('lotus');
 let outputChannel = window.createOutputChannel('Lotus');
 let languageServer : LanguageServer;
+let currentServerVersion = '';
 
 // outputChannel.show();
 
 export function activate(context: ExtensionContext) {
-	let compilerPath = getCompilerPath(COMPILER_MODE);
-
-	languageServer = new LanguageServer(compilerPath, log);
+	currentServerVersion = getServerVersionFromSettings();
+	languageServer = createServer(currentServerVersion);
 
 	languages.registerRenameProvider(LOTUS_DOCUMENT_SELECTOR, {
 		prepareRename,
@@ -45,6 +44,21 @@ export function activate(context: ExtensionContext) {
 	}, '.', ':', '@');
 
 	workspace.onDidSaveTextDocument(validateTextDocument);
+	workspace.onDidChangeConfiguration(handleConfigurationChange);
+}
+
+function handleConfigurationChange() {
+	let newVersion = getServerVersionFromSettings();
+
+	if (newVersion != currentServerVersion) {
+		currentServerVersion = newVersion;
+		languageServer.kill();
+		languageServer = createServer(currentServerVersion);
+	}
+}
+
+function getServerVersionFromSettings(): string {
+	return workspace.getConfiguration().get('lotus.version', 'self') as string;
 }
 
 async function provideSignatureHelp(document: TextDocument, position: Position, token: CancellationToken, context: SignatureHelpContext): Promise<SignatureHelp> {
@@ -236,20 +250,30 @@ async function validateTextDocument(document: TextDocument): Promise<void> {
 	}
 }
 
-function getCompilerPath(mode: string) {
+function createServer(mode): LanguageServer {
 	let rootPath = '';
 
 	if (mode === 'self') {
-		rootPath = SELF_COMPILER_ROOT_PATH;
+		rootPath = SELF_SERVER_ROOT_PATH;
 	} else {
-		let modeOption = mode === 'release' ? '--release' : '';
+		let releaseOption = '';
+		let targetDirectory = 'debug';
 
-		execSync(`cd ${SYSTEM_COMPILER_ROOT_PATH} && cargo build ${modeOption}`);
+		if (mode.includes('release')) {
+			releaseOption = '--release';
+			targetDirectory = 'release';
+		}
 
-		rootPath = path.join(SYSTEM_COMPILER_ROOT_PATH, 'target', mode);
+		log(`compiling system language server in ${targetDirectory} mode...`);
+
+		execSync(`cd ${SYSTEM_SERVER_ROOT_PATH} && cargo build ${releaseOption}`);
+
+		rootPath = path.join(SYSTEM_SERVER_ROOT_PATH, 'target', targetDirectory);
 	}
 
-	return path.join(rootPath, COMPILER_BINARY_NAME);
+	let serverPath = path.join(rootPath, SERVER_BINARY_NAME);
+
+	return new LanguageServer(serverPath, log);
 }
 
 function makeRange(document: TextDocument, start: string, end: string): Range {

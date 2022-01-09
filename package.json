@@ -28,7 +28,20 @@
         }],
         "configuration": {
             "type": "object",
-            "title": "Lotus"
+            "title": "Lotus",
+            "properties": {
+                "lotus.version": {
+                    "scope": "window",
+                    "type": "string",
+                    "enum": [
+                        "self",
+                        "system (release)",
+                        "system (debug)"
+                    ],
+                    "default": "self",
+                    "description": "Which version of the language server should be used."
+                }
+            }
         }
     },
     "activationEvents": [
