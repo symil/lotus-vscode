@@ -16,38 +16,19 @@
             "extensions": [".lt"],
             "configuration": "./language-configuration.json"
         }],
+        "iconThemes": [{
+            "id": "lotus",
+            "label": "Lotus",
+            "path": "./icons/lotus-icon-theme.json"
+        }],
         "grammars": [{
             "language": "lotus",
             "scopeName": "source.lotus",
             "path": "./syntaxes/lotus.tmLanguage.json"
         }],
-        "iconThemes": [{
-            "id": "lotus",
-            "label": "Lotus",
-            "path": "./fileicons/lotus-icon-theme.json"
-        }],
         "configuration": {
             "type": "object",
-            "title": "Lotus",
-            "properties": {
-                "lotus.maxNumberOfProblems": {
-                    "scope": "resource",
-                    "type": "number",
-                    "default": 100,
-                    "description": "Controls the maximum number of problems produced by the server."
-                },
-                "lotus.trace.server": {
-                    "scope": "window",
-                    "type": "string",
-                    "enum": [
-                        "off",
-                        "messages",
-                        "verbose"
-                    ],
-                    "default": "off",
-                    "description": "Traces the communication between VS Code and the language server."
-                }
-            }
+            "title": "Lotus"
         }
     },
     "activationEvents": [

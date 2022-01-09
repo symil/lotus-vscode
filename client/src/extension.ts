@@ -21,8 +21,6 @@ let languageServer : LanguageServer;
 export function activate(context: ExtensionContext) {
 	let compilerPath = getCompilerPath(COMPILER_MODE);
 
-	log(compilerPath);
-
 	languageServer = new LanguageServer(compilerPath, log);
 
 	languages.registerRenameProvider(LOTUS_DOCUMENT_SELECTOR, {
