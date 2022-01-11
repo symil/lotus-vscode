@@ -2,7 +2,7 @@ import * as path from 'path';
 import { execSync } from 'child_process';
 import { workspace, languages, ExtensionContext, TextDocument, Position, Range, CancellationToken, ProviderResult, WorkspaceEdit, Diagnostic, DiagnosticSeverity, Uri, window, Definition, Location, Hover, MarkdownString, CompletionContext, CompletionItem, CompletionList, SnippetString, SignatureHelpContext, SignatureHelp, SignatureInformation, ParameterInformation, CompletionItemKind } from 'vscode';
 import { LanguageServer } from './language-server';
-import { stringToCompletionItemKind } from './utils';
+import { stringToCompletionCommand, stringToCompletionItemKind } from './utils';
 
 const SERVER_BINARY_NAME = 'lotus-compiler';
 const EXTENSION_ROOT_PATH = path.join(__dirname, '..', '..');
@@ -87,9 +87,9 @@ async function provideCompletionItems(document: TextDocument, position: Position
 	let output = await languageServer.command('provide-completion-items', { document, position, sendContent: true });
 	let result = [];
 
-	for (let { type, items } of output) {
+	for (let { content, type, items } of output) {
 		if (type === 'item') {
-			let [label, kind, description, detail, documentation, insertText] = items;
+			let [label, position, kind, description, detail, documentation, insertText, filterText, command] = items;
 			let completionItem = new CompletionItem({ label, description });
 
 			completionItem.kind = stringToCompletionItemKind(kind);
@@ -101,35 +101,19 @@ async function provideCompletionItems(document: TextDocument, position: Position
 			completionItem.detail = detail;
 			completionItem.documentation = documentation;
 
-			let sortPrefix = 'a';
-
-			if (completionItem.kind === CompletionItemKind.Function || completionItem.kind === CompletionItemKind.Method) {
-				sortPrefix = 'b';
-			}
-
-			if (label.startsWith('_')) {
-				sortPrefix = 'c' + sortPrefix;
-			}
+			let sortPrefix = position.padStart(2, '0');
 
 			completionItem.sortText = `${sortPrefix}${label}`;
-
-			if (completionItem.kind === CompletionItemKind.Function || completionItem.kind === CompletionItemKind.Method) {
-				completionItem.command = {
-					title: 'signature help',
-					command: 'editor.action.triggerParameterHints'
-				};
-			}
-
-			if (insertText.endsWith('::')) {
-				completionItem.command = {
-					title: 'trigger autocompletion',
-					command: 'editor.action.triggerSuggest'
-				};
-			}
 
 			if (insertText) {
 				completionItem.insertText = new SnippetString(insertText);
 			}
+
+			if (filterText) {
+				completionItem.filterText = filterText;
+			}
+
+			completionItem.command = stringToCompletionCommand(command);
 
 			result.push(completionItem);
 		}

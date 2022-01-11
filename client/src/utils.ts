@@ -33,3 +33,16 @@ export function stringToCompletionItemKind(value: string): CompletionItemKind {
 
 	return null;
 }
+
+export function stringToCompletionCommand(value: string): { title: string, command: string } | undefined {
+	switch (value) {
+		case 'trigger-signature-help': return {
+			title: 'trigger signature help',
+			command: 'editor.action.triggerParameterHints'
+		};
+		case 'trigger-completion': return {
+			title: 'trigger autocompletion',
+			command: 'editor.action.triggerSuggest'
+		};
+	}
+}
