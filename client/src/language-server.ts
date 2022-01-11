@@ -11,6 +11,7 @@ export interface CommandParameters {
 	newName?: string
 }
 
+const LINE_START_MARKER = '\n#?!#'
 const SEPARATOR = '##';
 const PORT = 9609;
 
@@ -75,7 +76,7 @@ export class LanguageServer {
 
 	_onData(data: Buffer) {
 		// console.log(data.toString().trim());
-		let lines = data.toString().split('\n').filter(line => line);
+		let lines = data.toString().split(LINE_START_MARKER).filter(line => line);
 		let commandId = parseInt(lines.shift());
 		let resolve = this.promises.get(commandId);
 		let result = lines.map(line => {

@@ -1,6 +1,6 @@
 import * as path from 'path';
 import { execSync } from 'child_process';
-import { workspace, languages, ExtensionContext, TextDocument, Position, Range, CancellationToken, ProviderResult, WorkspaceEdit, Diagnostic, DiagnosticSeverity, Uri, window, Definition, Location, Hover, MarkdownString, CompletionContext, CompletionItem, CompletionList, SnippetString, SignatureHelpContext, SignatureHelp, SignatureInformation, ParameterInformation } from 'vscode';
+import { workspace, languages, ExtensionContext, TextDocument, Position, Range, CancellationToken, ProviderResult, WorkspaceEdit, Diagnostic, DiagnosticSeverity, Uri, window, Definition, Location, Hover, MarkdownString, CompletionContext, CompletionItem, CompletionList, SnippetString, SignatureHelpContext, SignatureHelp, SignatureInformation, ParameterInformation, CompletionItemKind } from 'vscode';
 import { LanguageServer } from './language-server';
 import { stringToCompletionItemKind } from './utils';
 
@@ -45,20 +45,6 @@ export function activate(context: ExtensionContext) {
 
 	workspace.onDidSaveTextDocument(validateTextDocument);
 	workspace.onDidChangeConfiguration(handleConfigurationChange);
-}
-
-function handleConfigurationChange() {
-	let newVersion = getServerVersionFromSettings();
-
-	if (newVersion != currentServerVersion) {
-		currentServerVersion = newVersion;
-		languageServer.kill();
-		languageServer = createServer(currentServerVersion);
-	}
-}
-
-function getServerVersionFromSettings(): string {
-	return workspace.getConfiguration().get('lotus.languageServerVersion', 'self') as string;
 }
 
 async function provideSignatureHelp(document: TextDocument, position: Position, token: CancellationToken, context: SignatureHelpContext): Promise<SignatureHelp> {
@@ -107,15 +93,39 @@ async function provideCompletionItems(document: TextDocument, position: Position
 			let completionItem = new CompletionItem({ label, description });
 
 			completionItem.kind = stringToCompletionItemKind(kind);
+
+			if (detail) {
+				completionItem.detail = detail;
+			}
+
 			completionItem.detail = detail;
 			completionItem.documentation = documentation;
 
-			// if (completionItem.kind === CompletionItemKind.Function || completionItem.kind === CompletionItemKind.Method) {
-			// 	completionItem.command = {
-			// 		title: 'signature help',
-			// 		command: 'editor.action.triggerParameterHints'
-			// 	};
-			// }
+			let sortPrefix = 'a';
+
+			if (completionItem.kind === CompletionItemKind.Function || completionItem.kind === CompletionItemKind.Method) {
+				sortPrefix = 'b';
+			}
+
+			if (label.startsWith('_')) {
+				sortPrefix = 'c' + sortPrefix;
+			}
+
+			completionItem.sortText = `${sortPrefix}${label}`;
+
+			if (completionItem.kind === CompletionItemKind.Function || completionItem.kind === CompletionItemKind.Method) {
+				completionItem.command = {
+					title: 'signature help',
+					command: 'editor.action.triggerParameterHints'
+				};
+			}
+
+			if (insertText.endsWith('::')) {
+				completionItem.command = {
+					title: 'trigger autocompletion',
+					command: 'editor.action.triggerSuggest'
+				};
+			}
 
 			if (insertText) {
 				completionItem.insertText = new SnippetString(insertText);
@@ -204,7 +214,7 @@ async function validateTextDocument(document: TextDocument): Promise<void> {
 		return;
 	}
 
-	let output = await languageServer.command('validate', { document });
+	let output = await languageServer.command('validate', { document, sendContent: false });
 	let uriToDiagnostics : Map<Uri, Diagnostic[]> = new Map();
 	let currentDiagnosticList : Diagnostic[] = [];
 	let currentDocument : TextDocument = document;
@@ -248,6 +258,20 @@ async function validateTextDocument(document: TextDocument): Promise<void> {
 	for (let [uri, diagnostics] of uriToDiagnostics.entries()) {
 		diagnosticCollection.set(uri, diagnostics);
 	}
+}
+
+function handleConfigurationChange() {
+	let newVersion = getServerVersionFromSettings();
+
+	if (newVersion != currentServerVersion) {
+		currentServerVersion = newVersion;
+		languageServer.kill();
+		languageServer = createServer(currentServerVersion);
+	}
+}
+
+function getServerVersionFromSettings(): string {
+	return workspace.getConfiguration().get('lotus.languageServerVersion', 'self') as string;
 }
 
 function createServer(version): LanguageServer {
