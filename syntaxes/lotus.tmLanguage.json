@@ -238,11 +238,16 @@
 					"comment": "enum declaration",
 					"begin": "(?<=enum\\s+\\w+\\s*){",
 					"end": "}",
-					"patterns": [{
-						"comment": "enum variant",
-						"match": "\\w+",
-						"name": "variable.other.constant"
-					}]
+					"patterns": [
+						{
+							"comment": "enum variant",
+							"match": "\\w+",
+							"name": "variable.other.constant"
+						},
+						{
+							"include": "#comments"
+						}
+					]
 				},
 				{
 					"comment": "builtin types",
