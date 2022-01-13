@@ -49,6 +49,9 @@ export class LanguageServer {
 				this.connection.on('data', data => this._onData(data));
 			}
 		});
+		this.serverProcess.stderr.on('data', (data) => {
+			this.log(`ERROR: ${data.toString().trim()}`);
+		});
 	}
 
 	async command(name: CommandName, parameters: CommandParameters): Promise<CommandAnswerFragment[]> {
@@ -69,7 +72,8 @@ export class LanguageServer {
 		this.nextCommandId++;
 		this.connection.write(command);
 
-		// this.log(command);
+		// this.log(`${commandId}${SEPARATOR}${name}${SEPARATOR}${filePath}${SEPARATOR}${cursorIndex}`);
+		console.log(`${commandId}${SEPARATOR}${name}${SEPARATOR}${filePath}${SEPARATOR}${cursorIndex}`);
 
 		return new Promise(resolve => this.promises.set(commandId, resolve));
 	}

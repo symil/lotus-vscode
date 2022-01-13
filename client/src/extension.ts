@@ -87,23 +87,34 @@ async function provideCompletionItems(document: TextDocument, position: Position
 	let output = await languageServer.command('provide-completion-items', { document, position, sendContent: true });
 	let result = [];
 
-	for (let { content, type, items } of output) {
+	for (let { type, items } of output) {
 		if (type === 'item') {
-			let [label, position, kind, description, detail, documentation, insertText, filterText, command] = items;
+			let [label, position, kind, range, description, detail, documentation, insertText, filterText, command] = items;
 			let completionItem = new CompletionItem({ label, description });
 
-			completionItem.kind = stringToCompletionItemKind(kind);
+			if (position) {
+				let sortPrefix = position.padStart(2, '0');
+
+				completionItem.sortText = `${sortPrefix}${label}`;
+			}
+
+			if (kind) {
+				completionItem.kind = stringToCompletionItemKind(kind);
+			}
+
+			if (range) {
+				let [start, end] = range.split(';');
+
+				completionItem.range = makeRange(document, start, end);
+			}
 
 			if (detail) {
 				completionItem.detail = detail;
 			}
 
-			completionItem.detail = detail;
-			completionItem.documentation = documentation;
-
-			let sortPrefix = position.padStart(2, '0');
-
-			completionItem.sortText = `${sortPrefix}${label}`;
+			if (documentation) {
+				completionItem.documentation = documentation;
+			}
 
 			if (insertText) {
 				completionItem.insertText = new SnippetString(insertText);
@@ -113,7 +124,9 @@ async function provideCompletionItems(document: TextDocument, position: Position
 				completionItem.filterText = filterText;
 			}
 
-			completionItem.command = stringToCompletionCommand(command);
+			if (command) {
+				completionItem.command = stringToCompletionCommand(command);
+			}
 
 			result.push(completionItem);
 		}
@@ -251,6 +264,7 @@ function handleConfigurationChange() {
 		currentServerVersion = newVersion;
 		languageServer.kill();
 		languageServer = createServer(currentServerVersion);
+		diagnosticCollection.clear();
 	}
 }
 
