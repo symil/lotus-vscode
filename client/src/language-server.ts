@@ -2,7 +2,16 @@ import * as net from 'net';
 import { spawn } from 'child_process';
 import { Position, TextDocument } from 'vscode';
 
-export type CommandName = 'validate' | 'prepare-rename' | 'provide-rename-edits' | 'provide-definition' | 'provide-hover' | 'provide-completion-items' | 'provide-signature-help';
+export type CommandName = (
+	  'validate'
+	| 'prepare-rename'
+	| 'provide-rename-edits'
+	| 'provide-definition'
+	| 'provide-hover'
+	| 'provide-completion-items'
+	| 'provide-signature-help'
+	| 'provide-code-actions'
+);
 export type CommandAnswerFragment = { content: string, type: string, items: string[] };
 export interface CommandParameters {
 	document: TextDocument,
@@ -15,21 +24,21 @@ const LINE_START_MARKER = '\n#?!#'
 const SEPARATOR = '##';
 const PORT = 9609;
 
+let log: (string) => void = () => {};
+let languageServer : LanguageServer;
+
 export class LanguageServer {
-	log: (string) => void
 	serverProcess: any
 	connection: net.Socket
 	connectionOpen: Promise<void>
 	nextCommandId: number
 	promises: Map<number, (value: any) => void>
 
-	constructor(serverPath: string, log: (string) => void) {
+	constructor(serverPath: string) {
 		let connectionOpenCallback;
 
-		this.log = log;
-
 		if (!serverPath) {
-			this.log('language server disabled');
+			log('language server disabled');
 			return;
 		}
 
@@ -38,9 +47,9 @@ export class LanguageServer {
 		this.serverProcess = spawn(serverPath, ['--server']);
 		this.connectionOpen = new Promise(resolve => connectionOpenCallback = resolve);
 
-		this.log('starting language server...');
+		log('starting language server...');
 		this.serverProcess.stdout.on('data', (data) => {
-			this.log(data.toString().trim())
+			log(data.toString().trim())
 			if (!this.connection) {
 				this.connection = net.createConnection(PORT);
 				this.connection.on('connect', () => {
@@ -50,11 +59,11 @@ export class LanguageServer {
 			}
 		});
 		this.serverProcess.stderr.on('data', (data) => {
-			this.log(`ERROR: ${data.toString().trim()}`);
+			log(`ERROR: ${data.toString().trim()}`);
 		});
 	}
 
-	async command(name: CommandName, parameters: CommandParameters): Promise<CommandAnswerFragment[]> {
+	async _command(name: CommandName, parameters: CommandParameters): Promise<CommandAnswerFragment[]> {
 		if (!this.serverProcess) {
 			return [];
 		}
@@ -96,10 +105,26 @@ export class LanguageServer {
 		resolve(result);
 	}
 
-	kill() {
+	_kill() {
 		if (this.serverProcess) {
 			this.serverProcess.kill();
 			this.serverProcess = null;
 		}
+	}
+
+	static setLogFunction(f: (string) => void) {
+		log = f;
+	}
+
+	static init(serverPath: string) {
+		languageServer = new LanguageServer(serverPath);
+	}
+
+	static async command(name: CommandName, parameters: CommandParameters): Promise<CommandAnswerFragment[]> {
+		return languageServer._command(name, parameters);
+	}
+
+	static kill() {
+		languageServer._kill();
 	}
 }
