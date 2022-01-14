@@ -1,9 +1,7 @@
-import { CancellationToken, CodeAction, CodeActionContext, commands, languages, Range, Selection, TextDocument, TextEditor, TextEditorEdit } from 'vscode';
+import { CancellationToken, CodeAction, CodeActionContext, CodeActionKind, languages, Range, Selection, TextDocument } from 'vscode';
 import { FeatureParameters } from '../utils';
 
 export function registerCodeActionsProvider(parameters: FeatureParameters) {
-	commands.registerTextEditorCommand('insert', insertText);
-
 	languages.registerCodeActionsProvider(parameters.selector, {
 		provideCodeActions,
 	});
@@ -13,12 +11,18 @@ async function provideCodeActions(document: TextDocument, range: Range | Selecti
 	return null;
 }
 
-function insertText(textEditor: TextEditor, edit: TextEditorEdit, args: any[]): void {
-	let inserts = args as { index: number, string: string }[];
-
-	for (let { index, string } of inserts) {
-		let position = textEditor.document.positionAt(index);
-
-		edit.insert(position, string);
+function stringToCodeActionKind(string: string): CodeActionKind {
+	switch (string) {
+		case 'empty': return CodeActionKind.Empty;
+		case 'quick-fix': return CodeActionKind.QuickFix;
+		case 'refactor': return CodeActionKind.Refactor;
+		case 'refactor-extract': return CodeActionKind.RefactorExtract;
+		case 'refactor-inline': return CodeActionKind.RefactorInline;
+		case 'refactor-rewrite': return CodeActionKind.RefactorRewrite;
+		case 'source': return CodeActionKind.Source;
+		case 'source-fix-all': return CodeActionKind.SourceFixAll;
+		case 'source-organize-imports': return CodeActionKind.SourceOrganizeImports;
 	}
+
+	return null;
 }

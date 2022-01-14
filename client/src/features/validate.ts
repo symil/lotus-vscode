@@ -1,22 +1,36 @@
-import { Diagnostic, DiagnosticCollection, DiagnosticSeverity, DocumentSelector, languages, TextDocument, Uri, workspace } from 'vscode';
+import { Diagnostic, DiagnosticCollection, DiagnosticSeverity, languages, TextDocument, Uri, workspace } from 'vscode';
 import { LanguageServer } from '../language-server';
 import { FeatureParameters, makeRange } from '../utils';
 
+const VALIDATION_DELAY = 50;
+
 let languageId : string;
 let diagnosticCollection : DiagnosticCollection;
+let validateTimeout : any = null
 
 export function registerValidationProvider(parameters: FeatureParameters) {
 	languageId = parameters.languageId;
 	diagnosticCollection = languages.createDiagnosticCollection('lotus');
 
-	workspace.onDidSaveTextDocument(validateTextDocument);
+	workspace.onDidSaveTextDocument(validateDocument);
 }
 
-async function validateTextDocument(document: TextDocument): Promise<void> {
+function validateDocument(document: TextDocument) {
 	if (document.languageId !== languageId) {
 		return;
 	}
+	
+	if (validateTimeout) {
+		clearTimeout(validateTimeout);
+	}
 
+	validateTimeout = setTimeout(() => {
+		runDocumentValidation(document);
+		validateTimeout = null;
+	}, VALIDATION_DELAY);
+}
+
+async function runDocumentValidation(document: TextDocument) {
 	let output = await LanguageServer.command('validate', { document, sendContent: false });
 	let uriToDiagnostics : Map<Uri, Diagnostic[]> = new Map();
 	let currentDiagnosticList : Diagnostic[] = [];
