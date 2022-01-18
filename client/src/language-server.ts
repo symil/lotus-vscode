@@ -42,7 +42,7 @@ export class LanguageServer {
 		this.currentServerModificationTime = readFileModificationTime(serverPath);
 
 		if (!serverPath) {
-			log('=> DISABLING LANGUAGE SERVER');
+			log('DISABLING LANGUAGE SERVER');
 			return;
 		}
 
@@ -54,9 +54,9 @@ export class LanguageServer {
 		this.connectionOpen = new Promise(resolve => connectionOpenCallback = resolve);
 
 		if (isReload) {
-			log('=> RELOADING LANGUAGE SERVER');
+			log('RELOADING LANGUAGE SERVER');
 		} else {
-			log('=> STARTING LANGUAGE SERVER');
+			log('STARTING LANGUAGE SERVER');
 		}
 
 		this.serverProcess.stdout.on('data', (data) => {

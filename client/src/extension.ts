@@ -2,7 +2,7 @@ import * as path from 'path';
 import { execSync } from 'child_process';
 import { workspace, languages, ExtensionContext, TextDocument, Position, Range, CancellationToken, ProviderResult, WorkspaceEdit, Diagnostic, DiagnosticSeverity, Uri, window, Definition, Location, Hover, MarkdownString, CompletionContext, CompletionItem, CompletionList, SnippetString, SignatureHelpContext, SignatureHelp, SignatureInformation, ParameterInformation, CompletionItemKind, TextEditor, TextEditorEdit, commands, TextEdit, Selection, CodeActionContext, Command, CodeAction } from 'vscode';
 import { LanguageServer } from './language-server';
-import { FeatureParameters, makeRange } from './utils';
+import { FeatureParameters, getFormattedTime, makeRange } from './utils';
 import { registerValidationProvider } from './features/validate';
 import { registerCompletionItemProvider } from './features/completion-item';
 import { registerCodeActionsProvider } from './features/code-actions';
@@ -91,5 +91,5 @@ function getServerPath(version): string {
 }
 
 function log(string: string) {
-	outputChannel.appendLine(string);
+	outputChannel.appendLine(`[${getFormattedTime()}] ${string}`);
 }
