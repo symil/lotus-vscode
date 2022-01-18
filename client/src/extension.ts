@@ -76,7 +76,7 @@ function getServerPath(version): string {
 			targetDirectory = 'release';
 		}
 
-		log(`compiling system language server in ${targetDirectory} mode...`);
+		// log(`compiling system language server in ${targetDirectory} mode...`);
 
 		execSync(`cd ${SYSTEM_SERVER_ROOT_PATH} && cargo build ${releaseOption}`);
 

@@ -1,6 +1,7 @@
 import * as net from 'net';
-import { spawn } from 'child_process';
+import { execSync, spawn } from 'child_process';
 import { Position, TextDocument } from 'vscode';
+import { statSync } from 'fs';
 
 export type CommandName = (
 	  'validate'
@@ -28,26 +29,36 @@ let log: (string) => void = () => {};
 let languageServer : LanguageServer;
 
 export class LanguageServer {
+	serverPath: string
+	currentServerModificationTime: number
 	serverProcess: any
 	connection: net.Socket
 	connectionOpen: Promise<void>
 	nextCommandId: number
 	promises: Map<number, (value: any) => void>
 
-	constructor(serverPath: string) {
-		let connectionOpenCallback;
+	constructor(serverPath: string, isReload: boolean = false) {
+		this.serverPath = serverPath;
+		this.currentServerModificationTime = readFileModificationTime(serverPath);
 
 		if (!serverPath) {
-			log('language server disabled');
+			log('=> DISABLING LANGUAGE SERVER');
 			return;
 		}
+
+		let connectionOpenCallback;
 
 		this.nextCommandId = 1;
 		this.promises = new Map();
 		this.serverProcess = spawn(serverPath, ['--server']);
 		this.connectionOpen = new Promise(resolve => connectionOpenCallback = resolve);
 
-		log('starting language server...');
+		if (isReload) {
+			log('=> RELOADING LANGUAGE SERVER');
+		} else {
+			log('=> STARTING LANGUAGE SERVER');
+		}
+
 		this.serverProcess.stdout.on('data', (data) => {
 			log(data.toString().trim())
 			if (!this.connection) {
@@ -101,6 +112,7 @@ export class LanguageServer {
 		});
 
 		this.promises.delete(commandId);
+		displayMemoryUsage();
 		
 		resolve(result);
 	}
@@ -121,10 +133,36 @@ export class LanguageServer {
 	}
 
 	static async command(name: CommandName, parameters: CommandParameters): Promise<CommandAnswerFragment[]> {
+		let currentModificationDate = readFileModificationTime(languageServer.serverPath);
+
+		if (currentModificationDate != languageServer.currentServerModificationTime) {
+			languageServer._kill();
+			languageServer = new LanguageServer(languageServer.serverPath, true);
+		}
+
 		return languageServer._command(name, parameters);
 	}
 
 	static kill() {
 		languageServer._kill();
 	}
+}
+
+function displayMemoryUsage() {
+	let output = execSync(`ps aux | grep lotus-compiler`).toString();
+	let memoryUsage = parseFloat(output.split('\n')[0].split(' ').filter(x => x)[3]);
+
+	if (memoryUsage > 1) {
+		log(`WARNING: MEMORY USAGE = ${memoryUsage}%`);
+	}
+}
+
+function readFileModificationTime(filePath: string): number {
+	if (!filePath) {
+		return 0;
+	}
+
+	let stats = statSync(filePath);
+
+	return stats.mtimeMs;
 }
