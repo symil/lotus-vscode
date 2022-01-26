@@ -1,7 +1,7 @@
 import * as net from 'net';
 import { execSync, spawn } from 'child_process';
 import { Position, TextDocument } from 'vscode';
-import { statSync } from 'fs';
+import { statSync, writeFileSync } from 'fs';
 
 export type CommandName = (
 	  'validate'
@@ -24,9 +24,13 @@ export interface CommandParameters {
 const LINE_START_MARKER = '\n#?!#'
 const SEPARATOR = '##';
 const PORT = 9609;
+const TMP_FILE_PATH = '/tmp/content.lt';
 
 let log: (string) => void = () => {};
 let languageServer : LanguageServer;
+let lastFilePath = '';
+let lastFileContent = '';
+let crashed = false;
 
 export class LanguageServer {
 	serverPath: string
@@ -71,6 +75,12 @@ export class LanguageServer {
 		});
 		this.serverProcess.stderr.on('data', (data) => {
 			log(`ERROR: ${data.toString().trim()}`);
+			if (!crashed) {
+				crashed = true;
+				log(`current file: ${lastFilePath}`);
+				log(`saved as: ${TMP_FILE_PATH}`);
+				writeFileSync(TMP_FILE_PATH, lastFileContent, 'utf8');
+			}
 		});
 	}
 
@@ -94,6 +104,11 @@ export class LanguageServer {
 
 		// this.log(`${commandId}${SEPARATOR}${name}${SEPARATOR}${filePath}${SEPARATOR}${cursorIndex}`);
 		console.log(`${commandId}${SEPARATOR}${name}${SEPARATOR}${filePath}${SEPARATOR}${cursorIndex}`);
+
+		if (!crashed) {
+			lastFilePath = document.uri.fsPath;
+			lastFileContent = document.getText();
+		}
 
 		return new Promise(resolve => this.promises.set(commandId, resolve));
 	}
