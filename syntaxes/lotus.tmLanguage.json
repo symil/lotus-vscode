@@ -91,7 +91,7 @@
 				{
 					"comment": "macros",
 					"name": "constant.character.set.regexp",
-					"match": "#(LINE|TYPE_ID|TYPE_NAME|TYPE_SHORT_NAME|FIELD_COUNT|FIELD_NAME|FIELD_TYPE|FIELD_DEFAULT_EXPRESSION|ANCESTOR_ID|ANCESTOR_NAME|VARIANT_NAME|VARIANT_VALUE|VARIANT_COUNT|USER_TYPE|WORLD_TYPE|WINDOW_TYPE|LOCAL_DATA_TYPE)\\b"
+					"match": "#(LINE|TYPE_ID|TYPE_NAME|TYPE_SHORT_NAME|TYPE_FULL_NAME|FIELD_COUNT|FIELD_NAME|FIELD_TYPE|FIELD_DEFAULT_EXPRESSION|ANCESTOR_ID|ANCESTOR_NAME|VARIANT_NAME|VARIANT_VALUE|VARIANT_COUNT|USER_TYPE|WORLD_TYPE|WINDOW_TYPE|LOCAL_DATA_TYPE)\\b"
 				},
 				{
 					"comment": "constants",
@@ -251,7 +251,7 @@
 				},
 				{
 					"comment": "builtin types",
-					"match": "\\b(bool|int|float|char|string|ptr)\\b",
+					"match": "\\b(bool|int|float|char|string|ptr|any)\\b",
 					"captures": {
 						"1": {
 							"name": "entity.name.type.lotus"
