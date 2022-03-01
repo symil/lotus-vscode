@@ -1,4 +1,4 @@
-import { CancellationToken, CodeAction, CodeActionContext, CodeActionKind, languages, Range, Selection, TextDocument, Uri, workspace, WorkspaceEdit } from 'vscode';
+import { CancellationToken, CodeAction, CodeActionContext, CodeActionKind, CodeActionTriggerKind, languages, Range, Selection, TextDocument, Uri, workspace, WorkspaceEdit } from 'vscode';
 import { LanguageServer } from '../language-server';
 import { FeatureParameters, makeRange } from '../utils';
 
@@ -9,6 +9,10 @@ export function registerCodeActionsProvider(parameters: FeatureParameters) {
 }
 
 async function provideCodeActions(document: TextDocument, selection: Selection, context: CodeActionContext, token: CancellationToken): Promise<CodeAction[]> {
+	if (context.triggerKind === CodeActionTriggerKind.Automatic) {
+		return [];
+	}
+
 	let output = await LanguageServer.command('provide-code-actions', { document, position: selection.active, sendContent: true });
 	let currentCodeAction : CodeAction;
 	let result = [];
