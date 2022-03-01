@@ -3,7 +3,10 @@ import { execSync, spawn } from 'child_process';
 import { Position, TextDocument } from 'vscode';
 import { statSync, writeFileSync } from 'fs';
 
-export type ServerParameters = { serverPath: string, logRequestDuration: boolean };
+export type ServerParameters = {
+	serverPath: string,
+	logRequestDuration: boolean
+};
 export type CommandName = (
 	  'validate'
 	| 'prepare-rename'
@@ -166,8 +169,9 @@ export class LanguageServer {
 	}
 
 	static init(parameters: ServerParameters) {
+		let isReload = !!languageServer;
 		this.kill();
-		languageServer = new LanguageServer(parameters.serverPath, parameters.logRequestDuration, false);
+		languageServer = new LanguageServer(parameters.serverPath, parameters.logRequestDuration, isReload);
 	}
 
 	static async command(name: CommandName, parameters: CommandParameters): Promise<CommandAnswerFragment[]> {
