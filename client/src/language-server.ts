@@ -3,6 +3,7 @@ import { execSync, spawn } from 'child_process';
 import { Position, TextDocument } from 'vscode';
 import { statSync, writeFileSync } from 'fs';
 
+export type ServerParameters = { serverPath: string, logRequestDuration: boolean };
 export type CommandName = (
 	  'validate'
 	| 'prepare-rename'
@@ -39,9 +40,10 @@ export class LanguageServer {
 	connection: net.Socket
 	connectionOpen: Promise<void>
 	nextCommandId: number
+	logRequestDuration: boolean
 	promises: Map<number, (value: any) => void>
 
-	constructor(serverPath: string, isReload: boolean = false) {
+	constructor(serverPath: string, logRequestDuration: boolean, isReload: boolean) {
 		this.serverPath = serverPath;
 		this.currentServerModificationTime = readFileModificationTime(serverPath);
 
@@ -52,6 +54,7 @@ export class LanguageServer {
 
 		let connectionOpenCallback;
 
+		this.logRequestDuration = logRequestDuration;
 		this.nextCommandId = 1;
 		this.promises = new Map();
 		this.serverProcess = spawn(serverPath, ['--server']);
@@ -110,13 +113,32 @@ export class LanguageServer {
 			lastFileContent = document.getText();
 		}
 
-		return new Promise(resolve => this.promises.set(commandId, resolve));
+		let startTime = Date.now();
+
+		return new Promise(resolve => this.promises.set(commandId, resolve)).then((data: any) => {
+			let { duration, result } = data;
+			
+			if (this.logRequestDuration) {
+				let totalDuration = Date.now() - startTime;
+				let message = `${name}: ${totalDuration}ms`;
+
+				if (duration) {
+					message += ` (server: ${duration} ms)`;
+				}
+
+				log(message);
+			}
+
+			return result;
+		});
 	}
 
 	_onData(data: Buffer) {
 		// console.log(data.toString().trim());
 		let lines = data.toString().split(LINE_START_MARKER).filter(line => line);
-		let commandId = parseInt(lines.shift());
+		let [idStr, durationStr] = lines.shift().split(':');
+		let commandId = parseInt(idStr);
+		let duration = parseInt(durationStr);
 		let resolve = this.promises.get(commandId);
 		let result = lines.map(line => {
 			let content = line;
@@ -127,9 +149,9 @@ export class LanguageServer {
 		});
 
 		this.promises.delete(commandId);
-		displayMemoryUsage();
+		// displayMemoryUsage();
 		
-		resolve(result);
+		resolve({ duration, result });
 	}
 
 	_kill() {
@@ -143,8 +165,9 @@ export class LanguageServer {
 		log = f;
 	}
 
-	static init(serverPath: string) {
-		languageServer = new LanguageServer(serverPath);
+	static init(parameters: ServerParameters) {
+		this.kill();
+		languageServer = new LanguageServer(parameters.serverPath, parameters.logRequestDuration, false);
 	}
 
 	static async command(name: CommandName, parameters: CommandParameters): Promise<CommandAnswerFragment[]> {
@@ -152,14 +175,16 @@ export class LanguageServer {
 
 		if (currentModificationDate != languageServer.currentServerModificationTime) {
 			languageServer._kill();
-			languageServer = new LanguageServer(languageServer.serverPath, true);
+			languageServer = new LanguageServer(languageServer.serverPath, languageServer.logRequestDuration, true);
 		}
 
 		return languageServer._command(name, parameters);
 	}
 
 	static kill() {
-		languageServer._kill();
+		if (languageServer) {
+			languageServer._kill();
+		}
 	}
 }
 

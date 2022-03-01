@@ -1,7 +1,7 @@
 import * as path from 'path';
 import { execSync } from 'child_process';
 import { workspace, languages, ExtensionContext, TextDocument, Position, Range, CancellationToken, ProviderResult, WorkspaceEdit, Diagnostic, DiagnosticSeverity, Uri, window, Definition, Location, Hover, MarkdownString, CompletionContext, CompletionItem, CompletionList, SnippetString, SignatureHelpContext, SignatureHelp, SignatureInformation, ParameterInformation, CompletionItemKind, TextEditor, TextEditorEdit, commands, TextEdit, Selection, CodeActionContext, Command, CodeAction } from 'vscode';
-import { LanguageServer } from './language-server';
+import { LanguageServer, ServerParameters } from './language-server';
 import { FeatureParameters, getFormattedTime, makeRange } from './utils';
 import { registerValidationProvider } from './features/validate';
 import { registerCompletionItemProvider } from './features/completion-item';
@@ -19,46 +19,61 @@ const LANGUAGE_ID = 'lotus';
 
 let outputChannel = window.createOutputChannel('Lotus');
 let diagnosticCollection = languages.createDiagnosticCollection('lotus');
-let currentServerVersion = '';
+let currentServerParameters;
 
 // outputChannel.show();
 
 export function activate(context: ExtensionContext) {
-	let parameters : FeatureParameters = {
+	let clientParameters : FeatureParameters = {
 		languageId: LANGUAGE_ID,
 		selector: { scheme: 'file', language: 'lotus' },
 		diagnosticCollection
 	};
+	currentServerParameters = getServerParameters();
 
 	LanguageServer.setLogFunction(log);
-
-	currentServerVersion = getServerVersionFromSettings();
-	LanguageServer.init(getServerPath(currentServerVersion));
+	LanguageServer.init(currentServerParameters);
 
 	workspace.onDidChangeConfiguration(handleConfigurationChange);
 
-	registerCodeActionsProvider(parameters);
-	registerCompletionItemProvider(parameters);
-	registerDefinitionProvider(parameters);
-	registerHoverProvider(parameters);
-	registerRenameProvider(parameters);
-	registerSignatureHelpProvider(parameters);
-	registerValidationProvider(parameters);
+	registerCodeActionsProvider(clientParameters);
+	registerCompletionItemProvider(clientParameters);
+	registerDefinitionProvider(clientParameters);
+	registerHoverProvider(clientParameters);
+	registerRenameProvider(clientParameters);
+	registerSignatureHelpProvider(clientParameters);
+	registerValidationProvider(clientParameters);
 }
 
 function handleConfigurationChange() {
-	let newVersion = getServerVersionFromSettings();
+	let parameters = getServerParameters();
 
-	if (newVersion != currentServerVersion) {
-		currentServerVersion = newVersion;
-		LanguageServer.kill();
-		LanguageServer.init(getServerPath(currentServerVersion));
+	if (areDifferentServerParameters(currentServerParameters, parameters)) {
+		currentServerParameters = parameters;
+		LanguageServer.init(parameters);
 		diagnosticCollection.clear();
 	}
 }
 
-function getServerVersionFromSettings(): string {
-	return workspace.getConfiguration().get('lotus.languageServerVersion', 'self') as string;
+function areDifferentServerParameters(oldParams: ServerParameters, newParams: ServerParameters) {
+	if (!oldParams) {
+		return true;
+	}
+
+	return oldParams.serverPath != newParams.serverPath || oldParams.logRequestDuration != newParams.logRequestDuration;
+}
+
+function getServerParameters() {
+	let config = workspace.getConfiguration();
+	let serverVersion = config.get('lotus.languageServerVersion', 'self') as string;
+	let serverPath = getServerPath(serverVersion);
+	let logRequestDuration = config.get('lotus.logRequestDuration', false) as boolean;
+
+	return {
+		serverVersion,
+		serverPath,
+		logRequestDuration
+	}
 }
 
 function getServerPath(version): string {
@@ -77,8 +92,7 @@ function getServerPath(version): string {
 		}
 
 		// log(`compiling system language server in ${targetDirectory} mode...`);
-
-		execSync(`cd ${SYSTEM_SERVER_ROOT_PATH} && cargo build ${releaseOption}`);
+		// execSync(`cd ${SYSTEM_SERVER_ROOT_PATH} && cargo build ${releaseOption}`);
 
 		rootPath = path.join(SYSTEM_SERVER_ROOT_PATH, 'target', targetDirectory);
 	}

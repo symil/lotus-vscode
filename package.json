@@ -41,6 +41,12 @@
                     ],
                     "default": "self",
                     "description": "Language server version to use."
+                },
+                "lotus.logRequestDuration": {
+                    "scope": "window",
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Whether to log the duration of each request to the server."
                 }
             }
         }

@@ -112,6 +112,11 @@
 					"comment": "decimal integers and floats",
 					"name": "constant.numeric.decimal.lotus",
 					"match": "((-|\\+)?((0x[0-9abcdefABCDEF]{1,8})|(\\d+(\\.\\d*)?(f|r|v|w|h|m)?)))"
+				},
+				{
+					"comment": "hexadecimal colors",
+					"name": "constant.language",
+					"match": "#([A-Fa-f0-9]{8}|[A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})"
 				}
 			]
 		},
