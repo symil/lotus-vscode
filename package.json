@@ -17,8 +17,8 @@
             "configuration": "./language-configuration.json"
         }],
         "iconThemes": [{
-            "id": "lotus",
-            "label": "Lotus",
+            "id": "seti-lotus",
+            "label": "Seti + Lotus",
             "path": "./icons/lotus-icon-theme.json"
         }],
         "grammars": [{

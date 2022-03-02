@@ -19,15 +19,17 @@ function validateDocument(document: TextDocument) {
 	if (document.languageId !== languageId) {
 		return;
 	}
-	
-	if (validateTimeout) {
-		clearTimeout(validateTimeout);
-	}
 
-	validateTimeout = setTimeout(() => {
-		runDocumentValidation(document);
-		validateTimeout = null;
-	}, VALIDATION_DELAY);
+	runDocumentValidation(document);
+	
+	// if (validateTimeout) {
+	// 	clearTimeout(validateTimeout);
+	// }
+
+	// validateTimeout = setTimeout(() => {
+	// 	runDocumentValidation(document);
+	// 	validateTimeout = null;
+	// }, VALIDATION_DELAY);
 }
 
 async function runDocumentValidation(document: TextDocument) {

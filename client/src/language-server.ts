@@ -2,6 +2,7 @@ import * as net from 'net';
 import { execSync, spawn } from 'child_process';
 import { Position, TextDocument } from 'vscode';
 import { statSync, writeFileSync } from 'fs';
+import { forkString } from './utils';
 
 export type ServerParameters = {
 	serverPath: string,
@@ -119,17 +120,17 @@ export class LanguageServer {
 		let startTime = Date.now();
 
 		return new Promise(resolve => this.promises.set(commandId, resolve)).then((data: any) => {
-			let { duration, result } = data;
+			let { message, result } = data;
 			
 			if (this.logRequestDuration) {
 				let totalDuration = Date.now() - startTime;
-				let message = `${name}: ${totalDuration}ms`;
+				let finalMessage = `${(name + ':')} ${totalDuration}ms`;
 
-				if (duration) {
-					message += ` (server: ${duration} ms)`;
+				if (message) {
+					finalMessage += ` (server: ${message})`;
 				}
 
-				log(message);
+				log(finalMessage);
 			}
 
 			return result;
@@ -139,9 +140,8 @@ export class LanguageServer {
 	_onData(data: Buffer) {
 		// console.log(data.toString().trim());
 		let lines = data.toString().split(LINE_START_MARKER).filter(line => line);
-		let [idStr, durationStr] = lines.shift().split(':');
+		let [idStr, message] = forkString(lines.shift(), ' ');
 		let commandId = parseInt(idStr);
-		let duration = parseInt(durationStr);
 		let resolve = this.promises.get(commandId);
 		let result = lines.map(line => {
 			let content = line;
@@ -154,7 +154,7 @@ export class LanguageServer {
 		this.promises.delete(commandId);
 		// displayMemoryUsage();
 		
-		resolve({ duration, result });
+		resolve({ message, result });
 	}
 
 	_kill() {

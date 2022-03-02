@@ -20,3 +20,16 @@ export function getFormattedTime(): string {
 
 	return formattedTime;
 }
+
+export function forkString(string: string, separator: string) {
+	let index = string.indexOf(separator);
+
+	if (index === -1) {
+		return [string, ''];
+	} else {
+		return [
+			string.substring(0, index),
+			string.substring(index + separator.length)
+		];
+	}
+}
