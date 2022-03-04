@@ -1,4 +1,4 @@
-import { Diagnostic, DiagnosticCollection, DiagnosticSeverity, languages, TextDocument, Uri, workspace } from 'vscode';
+import { Diagnostic, DiagnosticCollection, DiagnosticSeverity, languages, TextDocument, TextDocumentWillSaveEvent, Uri, workspace } from 'vscode';
 import { LanguageServer } from '../language-server';
 import { FeatureParameters, makeRange } from '../utils';
 
@@ -12,15 +12,24 @@ export function registerValidationProvider(parameters: FeatureParameters) {
 	languageId = parameters.languageId;
 	diagnosticCollection = languages.createDiagnosticCollection('lotus');
 
-	workspace.onDidSaveTextDocument(validateDocument);
+	workspace.onDidSaveTextDocument(onDidSaveTextDocument);
+	// workspace.onWillSaveTextDocument(onWillSaveTextDocument);
 }
 
-function validateDocument(document: TextDocument) {
+async function onWillSaveTextDocument(event: TextDocumentWillSaveEvent) {
+	validateDocument(event.document, true);
+}
+
+async function onDidSaveTextDocument(document: TextDocument) {
+	validateDocument(document, false);
+}
+
+function validateDocument(document: TextDocument, sendContent: boolean) {
 	if (document.languageId !== languageId) {
 		return;
 	}
 
-	runDocumentValidation(document);
+	runDocumentValidation(document, sendContent);
 	
 	// if (validateTimeout) {
 	// 	clearTimeout(validateTimeout);
@@ -32,8 +41,8 @@ function validateDocument(document: TextDocument) {
 	// }, VALIDATION_DELAY);
 }
 
-async function runDocumentValidation(document: TextDocument) {
-	let output = await LanguageServer.command('validate', { document, sendContent: false });
+async function runDocumentValidation(document: TextDocument, sendContent: boolean) {
+	let output = await LanguageServer.command('validate', { document, sendContent });
 	let uriToDiagnostics : Map<Uri, Diagnostic[]> = new Map();
 	let currentDiagnosticList : Diagnostic[] = [];
 	let currentDocument : TextDocument = document;
