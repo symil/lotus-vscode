@@ -28,7 +28,6 @@ export interface CommandParameters {
 
 const LINE_START_MARKER = '\n#?!#'
 const SEPARATOR = '##';
-const PORT = 9609;
 const TMP_FILE_PATH = '/tmp/content.lt';
 
 let log: (string) => void = () => {};
@@ -71,9 +70,13 @@ export class LanguageServer {
 		}
 
 		this.serverProcess.stdout.on('data', (data) => {
-			log(data.toString().trim())
+			let line : string = data.toString().trim();
+			log(line);
+
 			if (!this.connection) {
-				this.connection = net.createConnection(PORT);
+				let port = +line.match(/\d+/)[0];
+
+				this.connection = net.createConnection(port);
 				this.connection.on('connect', () => {
 					connectionOpenCallback();
 				});
