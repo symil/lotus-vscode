@@ -21,7 +21,7 @@ async function onWillSaveTextDocument(event: TextDocumentWillSaveEvent) {
 }
 
 async function onDidSaveTextDocument(document: TextDocument) {
-	validateDocument(document, false);
+	validateDocument(document, true);
 }
 
 function validateDocument(document: TextDocument, sendContent: boolean) {

@@ -22,13 +22,14 @@ async function provideCompletionItems(document: TextDocument, position: Position
 
 	for (let { type, items } of output) {
 		if (type === 'item') {
-			let [label, position, kind, range, description, detail, documentation, insertText, filterText, command] = items;
+			let [label, position, kind, range, description, detail, documentation, insertText, filterText, sortText, command] = items;
 			let completionItem = new CompletionItem({ label, description });
 
-			if (position) {
+			if (position || sortText) {
+				let sortLabel = sortText || label;
 				let sortPrefix = position.padStart(2, '0');
 
-				completionItem.sortText = `${sortPrefix}${label}`;
+				completionItem.sortText = `${sortPrefix}${sortLabel}`;
 			}
 
 			if (kind) {

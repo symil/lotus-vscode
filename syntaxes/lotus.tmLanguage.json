@@ -331,7 +331,7 @@
 				{
 					"comment": "special variables",
 					"name": "variable.language.lotus",
-					"match": "\\b(self|evt)\\b"
+					"match": "\\b(self|evt|opt)\\b"
 				}
 			]
 		},
