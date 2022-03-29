@@ -306,7 +306,7 @@
 				},
 				{
 					"comment": "type declarations",
-					"match": "\\b(type|enum|class|view|event|interface)(\\s*\\((void|i32|f32)\\))?\\s+([A-Z][A-Za-z0-9]*)\\b",
+					"match": "\\b(type|enum|class|event|interface)(\\s*\\((void|i32|f32)\\))?\\s+([A-Z][A-Za-z0-9]*)\\b",
 					"captures": {
 						"1": {
 							"name": "keyword.declaration.type.lotus storage.type.lotus"
@@ -348,13 +348,16 @@
 			"patterns": [
 				{
 					"comment": "event callbacks",
-					"match": "([@$]+)\\s*([a-zA-Z0-9_]+)",
+					"match": "([@$]+)\\s*([a-zA-Z0-9_]+)\\s*(:(start|progress|end)?)?",
 					"captures": {
 						"1": {
 							"name": "entity.name.function.lotus"
 						},
 						"2": {
 							"name": "entity.name.function.lotus"
+						},
+						"4": {
+							"name": "keyword.control.lotus"
 						}
 					}
 				},
