@@ -2,7 +2,7 @@ import * as net from 'net';
 import { execSync, spawn } from 'child_process';
 import { Position, TextDocument } from 'vscode';
 import { statSync, writeFileSync } from 'fs';
-import { forkString } from './utils';
+import { forkString, getStringByteOffset } from './utils';
 
 export type ServerParameters = {
 	serverPath: string,
@@ -103,9 +103,10 @@ export class LanguageServer {
 
 		let commandId = this.nextCommandId;
 		let document = parameters.document;
+		let content = document.getText();
 		let filePath = document.uri.fsPath;
-		let cursorIndex = parameters.position ? document.offsetAt(parameters.position) : -1;
-		let fileContent = parameters.sendContent ? document.getText() : '';
+		let cursorIndex = parameters.position ? getStringByteOffset(content, document.offsetAt(parameters.position)) : -1;
+		let fileContent = parameters.sendContent ? content : '';
 		let newName = parameters.newName ? parameters.newName : '';
 		let command = `${commandId}${SEPARATOR}${name}${SEPARATOR}${filePath}${SEPARATOR}${cursorIndex}${SEPARATOR}${fileContent}${SEPARATOR}${newName}`;
 
@@ -117,7 +118,7 @@ export class LanguageServer {
 
 		if (!crashed) {
 			lastFilePath = document.uri.fsPath;
-			lastFileContent = document.getText();
+			lastFileContent = content;
 		}
 
 		let startTime = Date.now();

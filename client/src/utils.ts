@@ -7,7 +7,10 @@ export type FeatureParameters = {
 };
 
 export function makeRange(document: TextDocument, start: string, end: string): Range {
-	return new Range(document.positionAt(parseInt(start)), document.positionAt(parseInt(end)));
+	let content = document.getText();
+	let [rangeStart, rangeEnd] = getRangeOffsets(content, parseInt(start), parseInt(end))
+
+	return new Range(document.positionAt(rangeStart), document.positionAt(rangeEnd));
 }
 
 function fmt(n: number): string {
@@ -32,4 +35,67 @@ export function forkString(string: string, separator: string) {
 			string.substring(index + separator.length)
 		];
 	}
+}
+
+export function getStringByteOffset(content: string, offset: number): number {
+	let byteOffset = 0;
+	let chars = [...content];
+
+	for (let i = 0; i < offset; ++i) {
+		let code = chars[i].codePointAt(0);
+
+		if (code < 128) {
+			byteOffset += 1;
+		} else if (code < 2048) {
+			byteOffset += 2;
+		} else if (code < 0x10000) {
+			byteOffset += 3;
+		} else {
+			byteOffset += 4;
+		}
+	}
+
+	return byteOffset;
+}
+
+export function getRangeOffsets(content: string, startByteOffset: number, endByteOffset): Array<number> {
+	let chars = [...content];
+	let start = 0;
+	let end = 0;
+	let acc = 0;
+
+	for (let i = 0; i < content.length && acc <= startByteOffset; ++i) {
+		let code = chars[i].codePointAt(0);
+
+		if (code < 128) {
+			acc += 1;
+		} else if (code < 2048) {
+			acc += 2;
+		} else if (code < 0x10000) {
+			acc += 3;
+		} else {
+			acc += 4;
+		}
+
+		start = i;
+	}
+
+	end = start;
+	for (let i = start; i < content.length && acc <= endByteOffset; ++i) {
+		let code = chars[i].codePointAt(0);
+
+		if (code < 128) {
+			acc += 1;
+		} else if (code < 2048) {
+			acc += 2;
+		} else if (code < 0x10000) {
+			acc += 3;
+		} else {
+			acc += 4;
+		}
+
+		end = i;
+	}
+
+	return [start, end];
 }
