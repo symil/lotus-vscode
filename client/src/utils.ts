@@ -81,7 +81,7 @@ export function getRangeOffsets(content: string, startByteOffset: number, endByt
 	}
 
 	end = start;
-	for (let i = start; i < content.length && acc <= endByteOffset; ++i) {
+	for (let i = start + 1; i < content.length && acc <= endByteOffset; ++i) {
 		let code = chars[i].codePointAt(0);
 
 		if (code < 128) {
