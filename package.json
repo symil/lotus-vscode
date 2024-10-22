@@ -10,38 +10,37 @@
         "Programming Languages"
     ],
     "contributes": {
-        "languages": [{
-            "id": "lotus",
-            "aliases": ["Lotus", "lotus"],
-            "extensions": [".lt"],
-            "configuration": "./language-configuration.json"
-        }],
-        "iconThemes": [{
-            "id": "seti-lotus",
-            "label": "Seti + Lotus",
-            "path": "./icons/lotus-icon-theme.json"
-        }],
-        "grammars": [{
-            "language": "lotus",
-            "scopeName": "source.lotus",
-            "path": "./syntaxes/lotus.tmLanguage.json"
-        }],
+        "languages": [
+            {
+                "id": "lotus",
+                "aliases": [
+                    "Lotus",
+                    "lotus"
+                ],
+                "extensions": [
+                    ".lt"
+                ],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "iconThemes": [
+            {
+                "id": "seti-lotus",
+                "label": "Seti + Lotus",
+                "path": "./icons/lotus-icon-theme.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "lotus",
+                "scopeName": "source.lotus",
+                "path": "./syntaxes/lotus.tmLanguage.json"
+            }
+        ],
         "configuration": {
             "type": "object",
             "title": "Lotus",
             "properties": {
-                "lotus.languageServerVersion": {
-                    "scope": "window",
-                    "type": "string",
-                    "enum": [
-                        "none",
-                        "self",
-                        "system (release)",
-                        "system (debug)"
-                    ],
-                    "default": "self",
-                    "description": "Language server version to use."
-                },
                 "lotus.logRequestDuration": {
                     "scope": "window",
                     "type": "boolean",
@@ -69,7 +68,7 @@
         "@typescript-eslint/eslint-plugin": "^4.23.0",
         "@typescript-eslint/parser": "^4.23.0",
         "eslint": "^7.26.0",
-        "mocha": "^8.3.2",
+        "mocha": "^10.7.3",
         "typescript": "^4.4.3"
     }
 }
