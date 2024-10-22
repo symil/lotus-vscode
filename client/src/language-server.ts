@@ -3,13 +3,15 @@ import { execSync, spawn } from 'child_process';
 import { Position, TextDocument } from 'vscode';
 import { statSync, writeFileSync } from 'fs';
 import { forkString, getStringByteOffset } from './utils';
+import { join } from 'path';
+import { tmpdir } from 'os';
 
 export type ServerParameters = {
 	serverPath: string,
 	logRequestDuration: boolean
 };
 export type CommandName = (
-	  'validate'
+	| 'validate'
 	| 'prepare-rename'
 	| 'provide-rename-edits'
 	| 'provide-definition'
@@ -28,7 +30,7 @@ export interface CommandParameters {
 
 const LINE_START_MARKER = '\n#?!#'
 const SEPARATOR = '##';
-const TMP_FILE_PATH = '/tmp/content.lt';
+const TMP_FILE_PATH = join(tmpdir(), 'content.lt');
 
 let log: (string) => void = () => {};
 let languageServer : LanguageServer;

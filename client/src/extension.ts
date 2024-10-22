@@ -73,7 +73,13 @@ function getServerParameters() {
 }
 
 function getServerPath(): string {
-	return path.join(SELF_SERVER_ROOT_PATH, COMPILER_FILE_NAME);
+	let exeName = COMPILER_FILE_NAME;
+
+	if (process.platform === 'win32') {
+		exeName += '.exe';
+	}
+
+	return path.join(SELF_SERVER_ROOT_PATH, exeName);
 }
 
 function log(string: string) {

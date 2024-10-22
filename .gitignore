@@ -1,4 +1,4 @@
 node_modules
 out
 *.vsix
-lotus-compiler
+lotus-compiler*
