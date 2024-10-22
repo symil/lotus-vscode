@@ -12,6 +12,7 @@ import { registerSignatureHelpProvider } from './features/signature-help';
 
 const EXTENSION_ROOT_PATH = path.join(__dirname, '..', '..');
 const SELF_SERVER_ROOT_PATH = path.join(EXTENSION_ROOT_PATH, 'server');
+const COMPILER_FILE_NAME = 'lotus-compiler';
 const LANGUAGE_ID = 'lotus';
 
 let outputChannel = window.createOutputChannel('Lotus');
@@ -21,7 +22,7 @@ let currentServerParameters;
 // outputChannel.show();
 
 export function activate(context: ExtensionContext) {
-	let clientParameters : FeatureParameters = {
+	let clientParameters: FeatureParameters = {
 		languageId: LANGUAGE_ID,
 		selector: { scheme: 'file', language: 'lotus' },
 		diagnosticCollection
@@ -68,11 +69,11 @@ function getServerParameters() {
 	return {
 		serverPath,
 		logRequestDuration
-	}
+	};
 }
 
 function getServerPath(): string {
-	return SELF_SERVER_ROOT_PATH;
+	return path.join(SELF_SERVER_ROOT_PATH, COMPILER_FILE_NAME);
 }
 
 function log(string: string) {

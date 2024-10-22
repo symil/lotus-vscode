@@ -51,7 +51,7 @@ export class LanguageServer {
 		this.currentServerModificationTime = readFileModificationTime(serverPath);
 
 		if (!serverPath) {
-			log('DISABLING LANGUAGE SERVER');
+			log('Lotus extension disabled.');
 			return;
 		}
 
@@ -64,9 +64,9 @@ export class LanguageServer {
 		this.connectionOpen = new Promise(resolve => connectionOpenCallback = resolve);
 
 		if (isReload) {
-			log('RELOADING LANGUAGE SERVER');
+			log('Lotus extension reloaded.');
 		} else {
-			log('STARTING LANGUAGE SERVER');
+			log('Lotus extension started.');
 		}
 
 		this.serverProcess.stdout.on('data', (data) => {
@@ -112,9 +112,6 @@ export class LanguageServer {
 
 		this.nextCommandId++;
 		this.connection.write(command);
-
-		// this.log(`${commandId}${SEPARATOR}${name}${SEPARATOR}${filePath}${SEPARATOR}${cursorIndex}`);
-		console.log(`${commandId}${SEPARATOR}${name}${SEPARATOR}${filePath}${SEPARATOR}${cursorIndex}`);
 
 		if (!crashed) {
 			lastFilePath = document.uri.fsPath;
