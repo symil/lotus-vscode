@@ -25,3 +25,5 @@ cp /path/to/lotus/target/release/lotus-compiler ~/.vscode/extensions/vscode-lotu
 ```
 
 4. Reload VS code.
+
+5. (Optional) In the VS code settings, set the icon theme to "Seti + Lotus".
