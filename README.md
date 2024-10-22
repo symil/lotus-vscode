@@ -1,4 +1,4 @@
-VS code extension for the [lotus](https://github.com/symil/lotus) programming language.
+VS code extension for the [lotus](https://github.com/symil/lotus) programming language that provides syntax highlighting & autocompletion.
 
 ## How to install
 
