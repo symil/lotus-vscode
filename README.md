@@ -10,7 +10,7 @@ VS code extension for the [lotus](https://github.com/symil/lotus) programming la
 git clone git@github.com:symil/lotus-vscode.git ~/.vscode/extensions
 ```
 
-- Compile the extension.
+- Compile the extension:
 
 ```sh
 cd ~/.vscode/extensions/vscode-lotus
@@ -18,7 +18,7 @@ npm install
 npm run compile
 ```
 
-- Copy the lotus compiler in the `server` directory of the extension.
+- Copy the lotus compiler in the `server` directory of the extension:
 
 ```sh
 cp /path/to/lotus/target/release/lotus-compiler ~/.vscode/extensions/vscode-lotus/server
